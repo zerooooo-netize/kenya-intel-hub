@@ -10,7 +10,10 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Loader2, Save, Shield, Database, Cog, FileWarning, Users } from "lucide-react";
+import { Loader2, Save, Shield, Database, Cog, FileWarning, Users, Brain, Settings as SettingsIcon, BarChart3 } from "lucide-react";
+import AIBehavior from "./admin/AIBehavior";
+import SystemSettings from "./admin/SystemSettings";
+import UsageAnalytics from "./admin/UsageAnalytics";
 
 type Conn = {
   id: string;
@@ -48,14 +51,20 @@ const Admin = () => {
         <Tabs defaultValue="connections" className="space-y-4">
           <TabsList className="bg-secondary/40 flex-wrap h-auto">
             <TabsTrigger value="connections"><Database className="h-4 w-4 mr-2" />API Connections</TabsTrigger>
-            <TabsTrigger value="modules"><Cog className="h-4 w-4 mr-2" />Modules & AI</TabsTrigger>
+            <TabsTrigger value="modules"><Cog className="h-4 w-4 mr-2" />Modules</TabsTrigger>
+            <TabsTrigger value="ai"><Brain className="h-4 w-4 mr-2" />AI Behavior</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-2" />Users & Roles</TabsTrigger>
+            <TabsTrigger value="settings"><SettingsIcon className="h-4 w-4 mr-2" />System Settings</TabsTrigger>
+            <TabsTrigger value="usage"><BarChart3 className="h-4 w-4 mr-2" />Usage Analytics</TabsTrigger>
             <TabsTrigger value="logs"><FileWarning className="h-4 w-4 mr-2" />System Logs</TabsTrigger>
           </TabsList>
 
           <TabsContent value="connections"><ApiConnections /></TabsContent>
           <TabsContent value="modules"><ModulesPanel /></TabsContent>
+          <TabsContent value="ai"><AIBehavior /></TabsContent>
           <TabsContent value="users"><UsersPanel /></TabsContent>
+          <TabsContent value="settings"><SystemSettings /></TabsContent>
+          <TabsContent value="usage"><UsageAnalytics /></TabsContent>
           <TabsContent value="logs"><LogsPanel /></TabsContent>
         </Tabs>
       </div>

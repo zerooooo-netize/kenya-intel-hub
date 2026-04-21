@@ -11,7 +11,11 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import BotDetail from "./pages/BotDetail";
 import PoliticalMap from "./pages/PoliticalMap";
-import { Reports, Alerts, DataExplorer, Team } from "./pages/Placeholder";
+import Reports from "./pages/Reports";
+import Alerts from "./pages/Alerts";
+import DataExplorer from "./pages/DataExplorer";
+import Billing from "./pages/Billing";
+import { Team } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +35,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
             <Route path="/data-explorer" element={<ProtectedRoute role="analyst"><DataExplorer /></ProtectedRoute>} />
+            <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
