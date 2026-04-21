@@ -1,6 +1,12 @@
-import { Bell, ChevronDown, LayoutGrid, Search, Sparkles } from "lucide-react";
+import { Bell, ChevronDown, LayoutGrid, LogOut, Search, Sparkles } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const TopBar = () => {
+  const { user, roles, signOut } = useAuth();
+  const initials = (user?.email ?? "ZR").slice(0, 2).toUpperCase();
+  const role = roles[0] ?? "viewer";
+
   return (
     <header className="h-16 flex items-center gap-4 px-6 border-b border-border/60 glass-strong sticky top-0 z-30">
       <div className="flex-1 max-w-2xl relative">
@@ -24,14 +30,25 @@ const TopBar = () => {
         <span className="absolute -top-1 -right-1 h-5 min-w-[20px] px-1 flex items-center justify-center text-[10px] font-bold text-primary-foreground bg-gradient-primary rounded-full shadow-glow">12</span>
       </button>
 
-      <div className="flex items-center gap-3 pl-3 border-l border-border/60 cursor-pointer group">
-        <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground shadow-glow">CC</div>
-        <div className="hidden md:block">
-          <div className="text-sm font-semibold leading-tight">Command Center</div>
-          <div className="text-[11px] text-muted-foreground">Administrator</div>
-        </div>
-        <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-smooth" />
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button className="flex items-center gap-3 pl-3 border-l border-border/60 cursor-pointer group">
+            <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center text-sm font-bold text-primary-foreground shadow-glow">{initials}</div>
+            <div className="hidden md:block text-left">
+              <div className="text-sm font-semibold leading-tight truncate max-w-[140px]">{user?.email ?? "Guest"}</div>
+              <div className="text-[11px] text-muted-foreground capitalize">{role}</div>
+            </div>
+            <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-smooth" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={signOut}>
+            <LogOut className="h-4 w-4 mr-2" /> Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 };
