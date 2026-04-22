@@ -76,21 +76,24 @@ const Billing = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <header className="flex items-end justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold">Billing & Plans</h1>
-            <p className="text-muted-foreground text-sm mt-1">Choose the right tier for your campaign or organization.</p>
-          </div>
-          {!loading && (
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="border-primary/40 text-primary capitalize">Current: {tier}</Badge>
-              <Button variant="outline" size="sm" onClick={manage} disabled={busy === "manage"}>
-                {busy === "manage" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null} Manage
-              </Button>
-            </div>
-          )}
-        </header>
+      <div className="space-y-7">
+        <PageHeader
+          eyebrow="Subscription"
+          title="Billing &"
+          highlight="plans."
+          icon={Crown}
+          description="Choose the right tier for your campaign or organization. All plans include the ZERO design system, RBAC, and audit logging."
+          actions={
+            !loading ? (
+              <>
+                <Badge variant="outline" className="border-primary/40 text-primary capitalize">Current: {tier}</Badge>
+                <Button variant="outline" size="sm" onClick={manage} disabled={busy === "manage"}>
+                  {busy === "manage" ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null} Manage
+                </Button>
+              </>
+            ) : null
+          }
+        />
 
         <div className="grid md:grid-cols-3 gap-4">
           {TIERS.map((t) => {

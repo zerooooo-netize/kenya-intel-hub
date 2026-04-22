@@ -69,16 +69,15 @@ const DataExplorer = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <header className="flex items-end justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold flex items-center gap-3">
-              <Database className="h-7 w-7 text-primary" /> Data Explorer
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">Search, filter and export raw intelligence signals across all sources.</p>
-          </div>
-          <Button onClick={exportCsv} className="bg-gradient-primary"><Download className="h-4 w-4 mr-1" /> Export CSV</Button>
-        </header>
+      <div className="space-y-7">
+        <PageHeader
+          eyebrow="Analyst Workbench"
+          title="Data"
+          highlight="explorer."
+          icon={Database}
+          description="Search, filter and export every raw intelligence signal across all your sources — built for the analysts who chase the truth."
+          actions={<Button onClick={exportCsv} className="bg-gradient-primary"><Download className="h-4 w-4 mr-1.5" /> Export CSV</Button>}
+        />
 
         <Card className="glass border-border/60">
           <CardHeader>
