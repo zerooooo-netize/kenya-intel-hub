@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
+import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Sparkles, Download, Loader2 } from "lucide-react";
+import { FileText, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { generateReportPDF } from "@/lib/pdf";
 
@@ -46,7 +47,7 @@ const Reports = () => {
       });
       if (error) throw error;
 
-      const sections = parseSections(data?.output ?? "No content generated.");
+      const sections = parseSections(data?.text ?? data?.output ?? "No content generated.");
       generateReportPDF({
         title: tmpl.name,
         subtitle: topic,
@@ -78,15 +79,14 @@ const Reports = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <header>
-          <h1 className="font-display text-3xl font-bold flex items-center gap-3">
-            <FileText className="h-7 w-7 text-primary" /> Intelligence Reports
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Generate professional PDF briefings powered by ZERO AI from live signals.
-          </p>
-        </header>
+      <div className="space-y-7">
+        <PageHeader
+          eyebrow="Reports Studio"
+          title="Intelligence"
+          highlight="briefings."
+          icon={FileText}
+          description="Compose journalist-ready PDF briefings powered by ZERO AI from live signals — designed like an editorial dossier, ready in seconds."
+        />
 
         <div className="grid lg:grid-cols-[2fr_1fr] gap-4">
           <Card className="glass border-border/60">

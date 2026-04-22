@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import AppShell from "@/components/AppShell";
+import PageHeader from "@/components/PageHeader";
 import { generateSeats, PoliticalSeat, SEAT_COLORS, SEAT_RADIUS, SeatLevel } from "@/data/politicalSeats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,31 +44,30 @@ const PoliticalMap = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <header className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-bold flex items-center gap-3">
-              <MapIcon className="h-7 w-7 text-primary" /> Kenya Political Map
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Real-time sentiment & influence simulation across every elected seat — from MCA to President.
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            {(Object.keys(activeLevels) as SeatLevel[]).map((lvl) => (
-              <button
-                key={lvl}
-                onClick={() => setActiveLevels((a) => ({ ...a, [lvl]: !a[lvl] }))}
-                className={`text-xs px-3 py-1.5 rounded-lg border transition-smooth ${
-                  activeLevels[lvl] ? "border-primary/60 bg-primary/15 text-foreground" : "border-border/60 text-muted-foreground"
-                }`}
-              >
-                <span className="inline-block h-2 w-2 rounded-full mr-2 align-middle" style={{ background: SEAT_COLORS[lvl] }} />
-                {LEVEL_LABEL[lvl]} ({counts[lvl]})
-              </button>
-            ))}
-          </div>
-        </header>
+      <div className="space-y-7">
+        <PageHeader
+          eyebrow="Kenya Political Map"
+          title="Every seat,"
+          highlight="every signal."
+          icon={MapIcon}
+          description="Real-time sentiment & influence simulation across every elected position in Kenya — from Member of County Assembly to President."
+          actions={
+            <div className="flex gap-2 flex-wrap">
+              {(Object.keys(activeLevels) as SeatLevel[]).map((lvl) => (
+                <button
+                  key={lvl}
+                  onClick={() => setActiveLevels((a) => ({ ...a, [lvl]: !a[lvl] }))}
+                  className={`text-xs px-3 py-1.5 rounded-lg border transition-smooth ${
+                    activeLevels[lvl] ? "border-primary/60 bg-primary/15 text-foreground" : "border-border/60 text-muted-foreground hover:border-primary/30"
+                  }`}
+                >
+                  <span className="inline-block h-2 w-2 rounded-full mr-2 align-middle" style={{ background: SEAT_COLORS[lvl] }} />
+                  {LEVEL_LABEL[lvl]} ({counts[lvl]})
+                </button>
+              ))}
+            </div>
+          }
+        />
 
         <div className="grid lg:grid-cols-4 gap-4">
           <Card className="lg:col-span-3 glass border-border/60 overflow-hidden">

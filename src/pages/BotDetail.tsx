@@ -85,24 +85,34 @@ const BotDetail = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+      <div className="space-y-7">
+        <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-smooth">
           <ArrowLeft className="h-3 w-3" /> Back to Dashboard
         </Link>
 
-        <header className="rounded-2xl glass p-6 lg:p-8 relative overflow-hidden">
-          <div className="absolute right-0 top-0 h-full w-1/2 opacity-30 blur-3xl pointer-events-none" style={{ background: meta.color }} />
-          <div className="relative flex items-start gap-4 flex-wrap">
-            <div className="h-14 w-14 rounded-2xl grid place-items-center" style={{ background: `linear-gradient(135deg, ${meta.color}, hsl(265 95% 66%))` }}>
-              <Icon className="h-7 w-7 text-primary-foreground" />
+        <header className="rounded-3xl glass p-7 lg:p-10 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.06] pointer-events-none" style={{ backgroundImage: "radial-gradient(hsl(265 95% 70%) 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
+          <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full opacity-30 blur-3xl pointer-events-none" style={{ background: meta.color }} />
+
+          <div className="relative">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="h-px w-8 bg-gradient-to-r from-primary to-transparent" />
+              <span className="text-[10px] font-semibold tracking-[0.28em] text-primary uppercase">Module · {botKey}</span>
             </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="font-display text-3xl font-bold">{meta.name}</h1>
-              <p className="text-muted-foreground text-sm mt-1">{meta.tagline}</p>
+            <div className="flex items-start gap-5 flex-wrap">
+              <div className="h-16 w-16 rounded-2xl grid place-items-center shrink-0 shadow-glow" style={{ background: `linear-gradient(135deg, ${meta.color}, hsl(265 95% 66%))` }}>
+                <Icon className="h-8 w-8 text-primary-foreground" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h1 className="font-display text-3xl lg:text-[40px] font-bold tracking-tight leading-[1.05]">
+                  {meta.name.split(" ").slice(0, -1).join(" ")} <span className="font-editorial italic font-medium text-gradient">{meta.name.split(" ").slice(-1)[0]}</span>
+                </h1>
+                <p className="text-muted-foreground text-sm lg:text-[15px] mt-3 max-w-2xl leading-relaxed">{meta.tagline}</p>
+              </div>
+              <Badge variant={moduleCfg?.enabled ? "default" : "outline"} className="text-xs">
+                {moduleCfg?.enabled ? "● ACTIVE" : "○ DISABLED"}
+              </Badge>
             </div>
-            <Badge variant={moduleCfg?.enabled ? "default" : "outline"} className="text-xs">
-              {moduleCfg?.enabled ? "ACTIVE" : "DISABLED"}
-            </Badge>
           </div>
         </header>
 

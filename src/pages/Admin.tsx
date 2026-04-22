@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
+import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,16 +38,15 @@ type Module = {
 const Admin = () => {
   return (
     <AppShell>
-      <div className="space-y-6">
-        <header className="flex items-end justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="font-display text-3xl font-bold flex items-center gap-3">
-              <Shield className="h-7 w-7 text-primary" /> Admin Control Panel
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">Manage data sources, users, modules, AI behavior and system logs.</p>
-          </div>
-          <Badge variant="outline" className="border-success/40 text-success">RBAC Enforced</Badge>
-        </header>
+      <div className="space-y-7">
+        <PageHeader
+          eyebrow="Mission Operations"
+          title="Admin"
+          highlight="control panel."
+          icon={Shield}
+          description="Manage data sources, users, modules, AI behavior and system logs — everything ZERO touches, in one place."
+          actions={<Badge variant="outline" className="border-success/40 text-success">RBAC Enforced</Badge>}
+        />
 
         <Tabs defaultValue="connections" className="space-y-4">
           <TabsList className="bg-secondary/40 flex-wrap h-auto">
