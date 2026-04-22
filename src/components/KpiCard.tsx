@@ -42,15 +42,18 @@ const KpiCard = ({ label, value, suffix, delta, trend, color, spark }: KpiCardPr
            style={{ background: c.stroke }} />
 
       <div className="relative">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground font-medium">{label}</div>
-        <div className="mt-2 flex items-baseline gap-1">
-          <span className="font-display text-3xl font-bold tracking-tight">{value}</span>
+        <div className="flex items-center gap-2">
+          <span className="h-1 w-1 rounded-full" style={{ background: c.stroke }} />
+          <div className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-semibold">{label}</div>
+        </div>
+        <div className="mt-3 flex items-baseline gap-1">
+          <span className="font-display text-[34px] font-bold tracking-tight leading-none">{value}</span>
           {suffix && <span className="text-sm text-muted-foreground font-medium">{suffix}</span>}
         </div>
-        <div className={`mt-1 flex items-center gap-1 text-xs font-medium ${trendColor}`}>
+        <div className={`mt-2 flex items-center gap-1.5 text-[11px] font-medium ${trendColor}`}>
           <Icon className="h-3.5 w-3.5" />
-          <span>{delta}</span>
-          <span className="text-muted-foreground ml-1">vs last 24h</span>
+          <span className="font-mono">{delta}</span>
+          <span className="text-muted-foreground/70 ml-1">vs 24h</span>
         </div>
 
         <div className="mt-3 h-12 -mx-1">
