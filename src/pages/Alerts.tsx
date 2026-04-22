@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import AppShell from "@/components/AppShell";
+import PageHeader from "@/components/PageHeader";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Activity, BellRing, CheckCircle2, Loader2, Radio } from "lucide-react";
@@ -80,23 +81,22 @@ const Alerts = () => {
 
   return (
     <AppShell>
-      <div className="space-y-6">
-        <header className="flex items-end justify-between flex-wrap gap-3">
-          <div>
-            <h1 className="font-display text-3xl font-bold flex items-center gap-3">
-              <BellRing className="h-7 w-7 text-primary" /> Realtime Alerts
-            </h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              Live signal feed pushed via WebSocket from bots, sentiment engines, and brand monitors.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className={live ? "border-success/40 text-success" : "border-muted"}>
-              <Radio className={`h-3 w-3 mr-1 ${live ? "animate-pulse" : ""}`} /> {live ? "LIVE" : "Connecting…"}
-            </Badge>
-            <Button variant="outline" size="sm" onClick={seedDemo}>Simulate Alert</Button>
-          </div>
-        </header>
+      <div className="space-y-7">
+        <PageHeader
+          eyebrow="Realtime Operations"
+          title="Live signal"
+          highlight="feed."
+          icon={BellRing}
+          description="Streaming intelligence pushed via WebSocket from bots, sentiment engines, and brand monitors — the moment something moves, you know."
+          actions={
+            <>
+              <Badge variant="outline" className={live ? "border-success/40 text-success" : "border-muted"}>
+                <Radio className={`h-3 w-3 mr-1 ${live ? "animate-pulse" : ""}`} /> {live ? "LIVE" : "Connecting…"}
+              </Badge>
+              <Button variant="outline" size="sm" onClick={seedDemo}>Simulate Alert</Button>
+            </>
+          }
+        />
 
         {loading ? (
           <div className="grid place-items-center py-12"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>

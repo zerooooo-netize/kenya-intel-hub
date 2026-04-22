@@ -7,7 +7,7 @@ const AppShell = ({ children }: { children: ReactNode }) => (
     <Sidebar />
     <div className="flex-1 min-w-0 flex flex-col">
       <TopBar />
-      <main className="flex-1 p-4 lg:p-6 space-y-6 overflow-x-hidden">{children}</main>
+      <main className="flex-1 p-4 lg:p-8 space-y-7 overflow-x-hidden">{children}</main>
     </div>
   </div>
 );
