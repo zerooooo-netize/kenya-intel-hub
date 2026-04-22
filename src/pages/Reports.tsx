@@ -46,7 +46,7 @@ const Reports = () => {
       });
       if (error) throw error;
 
-      const sections = parseSections(data?.output ?? "No content generated.");
+      const sections = parseSections(data?.text ?? data?.output ?? "No content generated.");
       generateReportPDF({
         title: tmpl.name,
         subtitle: topic,
