@@ -3,11 +3,15 @@ import KenyaMap from "./KenyaMap";
 
 const IntelligenceFeed = () => {
   return (
-    <div className="glass rounded-2xl p-5 lg:col-span-2 relative overflow-hidden">
-      <div className="flex items-start justify-between mb-4">
+    <div className="glass rounded-2xl p-6 lg:col-span-2 relative overflow-hidden">
+      <div className="flex items-start justify-between mb-5 gap-4 flex-wrap">
         <div>
-          <h3 className="font-display font-semibold text-lg">Real-time Intelligence Feed</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Live signals across Kenya · last 15 minutes</p>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+            <span className="text-[10px] font-semibold tracking-[0.22em] text-success uppercase">Live · last 15 min</span>
+          </div>
+          <h3 className="font-display font-semibold text-xl tracking-tight">Real-time intelligence feed</h3>
+          <p className="text-xs text-muted-foreground mt-1">Signals streaming across all 47 counties</p>
         </div>
         <select className="text-xs bg-secondary/70 border border-border/60 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/40">
           <option>All Counties</option>
