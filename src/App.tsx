@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import Alerts from "./pages/Alerts";
 import DataExplorer from "./pages/DataExplorer";
 import Billing from "./pages/Billing";
+import Onboarding from "./pages/Onboarding";
 import { Team } from "./pages/Placeholder";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/political-map" element={<ProtectedRoute><PoliticalMap /></ProtectedRoute>} />
             <Route path="/bots/:botKey" element={<ProtectedRoute><BotDetail /></ProtectedRoute>} />

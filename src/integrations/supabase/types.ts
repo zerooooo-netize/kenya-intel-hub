@@ -119,6 +119,63 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_profiles: {
+        Row: {
+          aspired_position: Database["public"]["Enums"]["aspired_position"]
+          bio: string | null
+          campaign_slogan: string | null
+          campaign_topics: string[] | null
+          constituency: string | null
+          county: string | null
+          created_at: string
+          full_name: string
+          id: string
+          onboarded: boolean
+          party: string | null
+          social_handles: Json | null
+          updated_at: string
+          user_id: string
+          ward: string | null
+          website: string | null
+        }
+        Insert: {
+          aspired_position: Database["public"]["Enums"]["aspired_position"]
+          bio?: string | null
+          campaign_slogan?: string | null
+          campaign_topics?: string[] | null
+          constituency?: string | null
+          county?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          onboarded?: boolean
+          party?: string | null
+          social_handles?: Json | null
+          updated_at?: string
+          user_id: string
+          ward?: string | null
+          website?: string | null
+        }
+        Update: {
+          aspired_position?: Database["public"]["Enums"]["aspired_position"]
+          bio?: string | null
+          campaign_slogan?: string | null
+          campaign_topics?: string[] | null
+          constituency?: string | null
+          county?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          onboarded?: boolean
+          party?: string | null
+          social_handles?: Json | null
+          updated_at?: string
+          user_id?: string
+          ward?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       module_settings: {
         Row: {
           ai_model: string | null
@@ -323,6 +380,14 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "analyst" | "viewer"
+      aspired_position:
+        | "president"
+        | "deputy_president"
+        | "governor"
+        | "senator"
+        | "woman_representative"
+        | "mp"
+        | "mca"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -451,6 +516,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "analyst", "viewer"],
+      aspired_position: [
+        "president",
+        "deputy_president",
+        "governor",
+        "senator",
+        "woman_representative",
+        "mp",
+        "mca",
+      ],
     },
   },
 } as const
