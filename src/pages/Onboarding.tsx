@@ -72,9 +72,20 @@ const Onboarding = () => {
     setCustomTopic("");
   };
 
+  const scope = positionMeta?.scope;
+  const geoErrors = useMemo(() => {
+    const e: { county?: string; constituency?: string; ward?: string } = {};
+    if (scope && scope !== "National" && !county) e.county = "County is required for this seat.";
+    if (scope === "Constituency" || scope === "Ward") {
+      if (!constituency.trim()) e.constituency = "Constituency is required for this seat.";
+    }
+    if (scope === "Ward" && !ward.trim()) e.ward = "Ward is required for an MCA seat.";
+    return e;
+  }, [scope, county, constituency, ward]);
+
   const canNext: Record<Step, boolean> = {
     1: fullName.trim().length > 1 && !!position,
-    2: positionMeta?.scope === "National" ? true : !!county,
+    2: Object.keys(geoErrors).length === 0,
     3: topics.length > 0,
     4: true,
   };
