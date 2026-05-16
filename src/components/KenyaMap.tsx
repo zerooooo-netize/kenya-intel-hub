@@ -3,7 +3,7 @@ import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps
 import { kenyaHotspots } from "@/data/mockData";
 
 // Real Kenya GeoJSON (simplified Natural Earth admin-0). Loaded once.
-const GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson/master/countries/kenya/kenya-counties.json";
+const GEO_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/counties.geojson";
 
 const KenyaMap = () => {
   const [hovered, setHovered] = useState<string | null>(null);

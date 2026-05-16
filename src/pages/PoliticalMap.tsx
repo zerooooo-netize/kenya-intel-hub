@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TrendingDown, TrendingUp, Map as MapIcon, Filter } from "lucide-react";
 
-const GEO_URL = "https://raw.githubusercontent.com/deldersveld/topojson/master/countries/kenya/kenya-counties.json";
+const GEO_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/counties.geojson";
 
 const LEVEL_LABEL: Record<SeatLevel, string> = {
   president: "President",

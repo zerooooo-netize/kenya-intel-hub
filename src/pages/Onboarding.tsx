@@ -72,15 +72,42 @@ const Onboarding = () => {
     setCustomTopic("");
   };
 
+  const scope = positionMeta?.scope;
+
+  // Clear out-of-scope geography when the seat changes
+  useEffect(() => {
+    if (scope === "National" || scope === "County") {
+      setConstituency("");
+      setWard("");
+    } else if (scope === "Constituency") {
+      setWard("");
+    }
+  }, [scope]);
+
+  const geoErrors = useMemo(() => {
+    const e: { county?: string; constituency?: string; ward?: string } = {};
+    if (scope && scope !== "National" && !county) e.county = "County is required for this seat.";
+    if (scope === "Constituency" || scope === "Ward") {
+      if (!constituency.trim()) e.constituency = "Constituency is required for this seat.";
+    }
+    if (scope === "Ward" && !ward.trim()) e.ward = "Ward is required for an MCA seat.";
+    return e;
+  }, [scope, county, constituency, ward]);
+
   const canNext: Record<Step, boolean> = {
     1: fullName.trim().length > 1 && !!position,
-    2: positionMeta?.scope === "National" ? true : !!county,
+    2: Object.keys(geoErrors).length === 0,
     3: topics.length > 0,
     4: true,
   };
 
   const save = async (markOnboarded: boolean) => {
     if (!user) return;
+    if (markOnboarded && Object.keys(geoErrors).length > 0) {
+      toast.error("Please complete the required geography fields for your seat.");
+      setStep(2);
+      return;
+    }
     setBusy(true);
     try {
       const payload = {
@@ -221,24 +248,27 @@ const Onboarding = () => {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label>County {positionMeta?.scope !== "National" && <span className="text-destructive">*</span>}</Label>
+                <Label>County {scope && scope !== "National" && <span className="text-destructive">*</span>}</Label>
                 <Select value={county} onValueChange={setCounty}>
-                  <SelectTrigger><SelectValue placeholder="Select county" /></SelectTrigger>
+                  <SelectTrigger aria-invalid={!!geoErrors.county}><SelectValue placeholder="Select county" /></SelectTrigger>
                   <SelectContent className="max-h-72">
                     {KENYA_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                {geoErrors.county && <p className="text-xs text-destructive">{geoErrors.county}</p>}
               </div>
-              {(positionMeta?.scope === "Constituency" || positionMeta?.scope === "Ward") && (
+              {(scope === "Constituency" || scope === "Ward") && (
                 <div className="space-y-2">
-                  <Label>Constituency</Label>
-                  <Input value={constituency} onChange={(e) => setConstituency(e.target.value)} placeholder="e.g. Westlands" maxLength={80} />
+                  <Label>Constituency <span className="text-destructive">*</span></Label>
+                  <Input value={constituency} onChange={(e) => setConstituency(e.target.value)} placeholder="e.g. Westlands" maxLength={80} aria-invalid={!!geoErrors.constituency} />
+                  {geoErrors.constituency && <p className="text-xs text-destructive">{geoErrors.constituency}</p>}
                 </div>
               )}
-              {positionMeta?.scope === "Ward" && (
+              {scope === "Ward" && (
                 <div className="space-y-2">
-                  <Label>Ward</Label>
-                  <Input value={ward} onChange={(e) => setWard(e.target.value)} placeholder="e.g. Parklands/Highridge" maxLength={80} />
+                  <Label>Ward <span className="text-destructive">*</span></Label>
+                  <Input value={ward} onChange={(e) => setWard(e.target.value)} placeholder="e.g. Parklands/Highridge" maxLength={80} aria-invalid={!!geoErrors.ward} />
+                  {geoErrors.ward && <p className="text-xs text-destructive">{geoErrors.ward}</p>}
                 </div>
               )}
             </>
