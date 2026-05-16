@@ -73,6 +73,17 @@ const Onboarding = () => {
   };
 
   const scope = positionMeta?.scope;
+
+  // Clear out-of-scope geography when the seat changes
+  useEffect(() => {
+    if (scope === "National" || scope === "County") {
+      setConstituency("");
+      setWard("");
+    } else if (scope === "Constituency") {
+      setWard("");
+    }
+  }, [scope]);
+
   const geoErrors = useMemo(() => {
     const e: { county?: string; constituency?: string; ward?: string } = {};
     if (scope && scope !== "National" && !county) e.county = "County is required for this seat.";
