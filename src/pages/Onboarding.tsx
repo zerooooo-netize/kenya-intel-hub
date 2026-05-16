@@ -232,24 +232,27 @@ const Onboarding = () => {
                 </p>
               </div>
               <div className="space-y-2">
-                <Label>County {positionMeta?.scope !== "National" && <span className="text-destructive">*</span>}</Label>
+                <Label>County {scope && scope !== "National" && <span className="text-destructive">*</span>}</Label>
                 <Select value={county} onValueChange={setCounty}>
-                  <SelectTrigger><SelectValue placeholder="Select county" /></SelectTrigger>
+                  <SelectTrigger aria-invalid={!!geoErrors.county}><SelectValue placeholder="Select county" /></SelectTrigger>
                   <SelectContent className="max-h-72">
                     {KENYA_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                   </SelectContent>
                 </Select>
+                {geoErrors.county && <p className="text-xs text-destructive">{geoErrors.county}</p>}
               </div>
-              {(positionMeta?.scope === "Constituency" || positionMeta?.scope === "Ward") && (
+              {(scope === "Constituency" || scope === "Ward") && (
                 <div className="space-y-2">
-                  <Label>Constituency</Label>
-                  <Input value={constituency} onChange={(e) => setConstituency(e.target.value)} placeholder="e.g. Westlands" maxLength={80} />
+                  <Label>Constituency <span className="text-destructive">*</span></Label>
+                  <Input value={constituency} onChange={(e) => setConstituency(e.target.value)} placeholder="e.g. Westlands" maxLength={80} aria-invalid={!!geoErrors.constituency} />
+                  {geoErrors.constituency && <p className="text-xs text-destructive">{geoErrors.constituency}</p>}
                 </div>
               )}
-              {positionMeta?.scope === "Ward" && (
+              {scope === "Ward" && (
                 <div className="space-y-2">
-                  <Label>Ward</Label>
-                  <Input value={ward} onChange={(e) => setWard(e.target.value)} placeholder="e.g. Parklands/Highridge" maxLength={80} />
+                  <Label>Ward <span className="text-destructive">*</span></Label>
+                  <Input value={ward} onChange={(e) => setWard(e.target.value)} placeholder="e.g. Parklands/Highridge" maxLength={80} aria-invalid={!!geoErrors.ward} />
+                  {geoErrors.ward && <p className="text-xs text-destructive">{geoErrors.ward}</p>}
                 </div>
               )}
             </>
