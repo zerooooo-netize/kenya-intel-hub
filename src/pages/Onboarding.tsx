@@ -103,6 +103,11 @@ const Onboarding = () => {
 
   const save = async (markOnboarded: boolean) => {
     if (!user) return;
+    if (markOnboarded && Object.keys(geoErrors).length > 0) {
+      toast.error("Please complete the required geography fields for your seat.");
+      setStep(2);
+      return;
+    }
     setBusy(true);
     try {
       const payload = {
