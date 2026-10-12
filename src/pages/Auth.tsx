@@ -9,10 +9,13 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 
-const schema = z.object({
-  email: z.string().email().max(255),
+const loginSchema = z.object({
+  email: z.string().trim().email().max(255),
   password: z.string().min(6).max(72),
-  fullName: z.string().min(1).max(100).optional(),
+});
+
+const signupSchema = loginSchema.extend({
+  fullName: z.string().trim().min(1, "Full name is required").max(100),
 });
 
 const Auth = () => {
@@ -31,7 +34,10 @@ const Auth = () => {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const parsed = schema.safeParse({ email, password, fullName });
+    const schema = mode === "signup" ? signupSchema : loginSchema;
+    const parsed = schema.safeParse(
+      mode === "signup" ? { email, password, fullName } : { email, password }
+    );
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
       return;
