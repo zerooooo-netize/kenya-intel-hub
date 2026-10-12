@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
 import AppShell from "@/components/AppShell";
+import CountyDemographics from "@/components/CountyDemographics";
+import { normalizeCounty } from "@/data/countyDemographics";
 import PageHeader from "@/components/PageHeader";
 import { generateSeats, PoliticalSeat, SEAT_COLORS, SEAT_RADIUS, SeatLevel } from "@/data/politicalSeats";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +29,7 @@ const PoliticalMap = () => {
   });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<PoliticalSeat | null>(null);
+  const [county, setCounty] = useState("Nairobi");
 
   useEffect(() => {
     fetch(GEO_URL).then((r) => r.json()).then(setGeo).catch(() => setGeo(null));
@@ -85,6 +88,10 @@ const PoliticalMap = () => {
                         <Geography
                           key={g.rsmKey}
                           geography={g}
+                          onClick={() => {
+                            const name = normalizeCounty(g.properties.COUNTY_NAM ?? "");
+                            if (name) setCounty(name);
+                          }}
                           style={{
                             default: { fill: "hsl(250 30% 12%)", stroke: "hsl(265 80% 55% / 0.4)", strokeWidth: 0.5, outline: "none" },
                             hover: { fill: "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8, outline: "none" },
@@ -195,6 +202,7 @@ const PoliticalMap = () => {
             </Card>
           </div>
         </div>
+        <CountyDemographics county={county} onCountyChange={setCounty} />
       </div>
     </AppShell>
   );

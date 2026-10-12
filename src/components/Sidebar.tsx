@@ -20,13 +20,23 @@ const platform = [
   { label: "Campaign Profile", icon: Megaphone, to: "/onboarding" },
 ];
 
-const Sidebar = () => {
+export const SiteNavigation = ({ onNavigate }: { onNavigate?: () => void }) => {
   const { isAdmin } = useAuth();
   const system = [
     ...(isAdmin ? [{ label: "Admin Panel", icon: Settings, to: "/admin" }] : []),
     { label: "Team", icon: Users, to: "/team" },
   ];
 
+  return (
+    <nav aria-label="Site navigation" className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
+      <NavSection title="Main Modules" items={main} onNavigate={onNavigate} />
+      <NavSection title="Platform" items={platform} onNavigate={onNavigate} />
+      <NavSection title="System" items={system} onNavigate={onNavigate} />
+    </nav>
+  );
+};
+
+const Sidebar = () => {
   return (
     <aside className="hidden lg:flex w-64 shrink-0 flex-col bg-sidebar border-r border-sidebar-border h-screen sticky top-0">
       <div className="h-16 flex items-center gap-3 px-6 border-b border-sidebar-border">
@@ -42,11 +52,7 @@ const Sidebar = () => {
         </div>
       </div>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-6">
-        <NavSection title="Main Modules" items={main} />
-        <NavSection title="Platform" items={platform} />
-        <NavSection title="System" items={system} />
-      </nav>
+      <SiteNavigation />
 
       <div className="p-4 border-t border-sidebar-border">
         <div className="glass rounded-xl p-3 flex items-center gap-3">
@@ -64,7 +70,7 @@ const Sidebar = () => {
   );
 };
 
-const NavSection = ({ title, items }: { title: string; items: any[] }) => {
+const NavSection = ({ title, items, onNavigate }: { title: string; items: any[]; onNavigate?: () => void }) => {
   const loc = useLocation();
   return (
     <div>
@@ -79,6 +85,7 @@ const NavSection = ({ title, items }: { title: string; items: any[] }) => {
             <li key={item.label}>
               <NavLink
                 to={item.to}
+                onClick={onNavigate}
                 className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-smooth relative ${
                   active
                     ? "bg-gradient-primary text-primary-foreground shadow-glow font-semibold"

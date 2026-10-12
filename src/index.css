@@ -37,6 +37,18 @@
 
     --success: 150 85% 55%;
     --warning: 38 95% 60%;
+    --demographic-0: hsl(205 90% 65%);
+    --demographic-1: hsl(155 65% 55%);
+    --demographic-2: hsl(38 90% 63%);
+    --demographic-3: hsl(330 80% 70%);
+    --demographic-4: hsl(270 85% 75%);
+    --demographic-5: hsl(180 65% 50%);
+    --demographic-6: hsl(15 85% 65%);
+    --demographic-7: hsl(85 65% 60%);
+    --demographic-8: hsl(225 85% 75%);
+    --demographic-9: hsl(300 60% 70%);
+    --demographic-10: hsl(55 80% 65%);
+    --demographic-11: hsl(0 75% 70%);
 
     --border: 250 30% 18%;
     --input: 250 30% 14%;
