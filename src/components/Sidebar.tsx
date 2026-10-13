@@ -1,4 +1,4 @@
-import { ChevronRight, LayoutDashboard, Radar, Shield, Eye, AlertTriangle, Lock, Brain, Settings, Users, Map, FileText, Activity, Database, CreditCard, Megaphone } from "lucide-react";
+import { ChevronRight, LayoutDashboard, Radar, Shield, Eye, AlertTriangle, Lock, Brain, Settings, Users, Map, FileText, Activity, Database, CreditCard, Megaphone, BarChart3 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -16,6 +16,7 @@ const platform = [
   { label: "Reports", icon: FileText, to: "/reports" },
   { label: "Alerts", icon: Activity, to: "/alerts" },
   { label: "Data Explorer", icon: Database, to: "/data-explorer" },
+  { label: "Turnout Evidence", icon: BarChart3, to: "/turnout" },
   { label: "Billing", icon: CreditCard, to: "/billing" },
   { label: "Campaign Profile", icon: Megaphone, to: "/onboarding" },
 ];

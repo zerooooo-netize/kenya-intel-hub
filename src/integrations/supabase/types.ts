@@ -71,6 +71,51 @@ export type Database = {
         }
         Relationships: []
       }
+      analyst_results: {
+        Row: {
+          county: string
+          created_at: string
+          election: string
+          id: string
+          notes: string | null
+          published_on: string | null
+          registered_voters: number
+          source_title: string
+          source_url: string
+          submitted_by: string
+          turnout_pct: number | null
+          votes_cast: number
+        }
+        Insert: {
+          county: string
+          created_at?: string
+          election: string
+          id?: string
+          notes?: string | null
+          published_on?: string | null
+          registered_voters: number
+          source_title: string
+          source_url: string
+          submitted_by: string
+          turnout_pct?: number | null
+          votes_cast: number
+        }
+        Update: {
+          county?: string
+          created_at?: string
+          election?: string
+          id?: string
+          notes?: string | null
+          published_on?: string | null
+          registered_voters?: number
+          source_title?: string
+          source_url?: string
+          submitted_by?: string
+          turnout_pct?: number | null
+          votes_cast?: number
+        }
+        Relationships: []
+      }
       api_connections: {
         Row: {
           api_key: string | null
@@ -341,6 +386,36 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      turnout_comparisons: {
+        Row: {
+          counties: string[]
+          created_at: string
+          created_by: string
+          election: string
+          id: string
+          report: string
+          unavailable: string[]
+        }
+        Insert: {
+          counties: string[]
+          created_at?: string
+          created_by: string
+          election: string
+          id?: string
+          report: string
+          unavailable?: string[]
+        }
+        Update: {
+          counties?: string[]
+          created_at?: string
+          created_by?: string
+          election?: string
+          id?: string
+          report?: string
+          unavailable?: string[]
         }
         Relationships: []
       }
