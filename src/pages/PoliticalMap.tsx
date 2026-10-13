@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import AppShell from "@/components/AppShell";
 import CountyDemographics from "@/components/CountyDemographics";
+import CountyTurnout from "@/components/CountyTurnout";
 import { normalizeCounty } from "@/data/countyDemographics";
 import PageHeader from "@/components/PageHeader";
 import { generateSeats, PoliticalSeat, SEAT_COLORS, SEAT_RADIUS, SeatLevel } from "@/data/politicalSeats";
@@ -9,9 +10,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TrendingDown, TrendingUp, Map as MapIcon, Filter } from "lucide-react";
+import { TrendingDown, TrendingUp, Map as MapIcon, Filter, Plus, Minus, RotateCcw } from "lucide-react";
 
 const GEO_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/counties.geojson";
+const CONST_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/constituencies.geojson";
+const HOME = { center: [37.9062, 0.0236] as [number, number], zoom: 1 };
+
+const titleCase = (s: string) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Bounding-box centre of a GeoJSON feature, used to zoom onto a county.
+function centerOf(feature: any): [number, number] {
+  let minX = 180, minY = 90, maxX = -180, maxY = -90;
+  const walk = (c: any) => {
+    if (typeof c[0] === "number") {
+      minX = Math.min(minX, c[0]); maxX = Math.max(maxX, c[0]);
+      minY = Math.min(minY, c[1]); maxY = Math.max(maxY, c[1]);
+    } else c.forEach(walk);
+  };
+  walk(feature.geometry.coordinates);
+  return [(minX + maxX) / 2, (minY + maxY) / 2];
+}
 
 const LEVEL_LABEL: Record<SeatLevel, string> = {
   president: "President",
@@ -29,10 +47,15 @@ const PoliticalMap = () => {
   });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<PoliticalSeat | null>(null);
-  const [county, setCounty] = useState("Nairobi");
+  const [county, setCountyState] = useState("Nairobi");
+  const [constituency, setConstituency] = useState<string | null>(null);
+  const [constGeo, setConstGeo] = useState<any>(null);
+  const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
+  const setCounty = (name: string) => { setCountyState(name); setConstituency(null); };
 
   useEffect(() => {
     fetch(GEO_URL).then((r) => r.json()).then(setGeo).catch(() => setGeo(null));
+    fetch(CONST_URL).then((r) => r.json()).then(setConstGeo).catch(() => setConstGeo(null));
   }, []);
 
   const filtered = useMemo(() => {
@@ -81,21 +104,44 @@ const PoliticalMap = () => {
                 width={600} height={460}
                 style={{ width: "100%", height: "100%" }}
               >
+                <ZoomableGroup center={view.center} zoom={view.zoom} minZoom={1} maxZoom={24} onMoveEnd={(p) => setView({ center: p.coordinates as [number, number], zoom: p.zoom })}>
                 {geo && (
                   <Geographies geography={geo}>
                     {({ geographies }) =>
-                      geographies.map((g: any) => (
+                      geographies.map((g: any) => {
+                        const name = normalizeCounty(g.properties.COUNTY_NAM ?? "");
+                        const active = name === county && view.zoom > 1.5;
+                        return (
                         <Geography
                           key={g.rsmKey}
                           geography={g}
                           onClick={() => {
-                            const name = normalizeCounty(g.properties.COUNTY_NAM ?? "");
-                            if (name) setCounty(name);
+                            if (!name) return;
+                            setCounty(name);
+                            setView({ center: centerOf(g), zoom: 5 });
                           }}
                           style={{
-                            default: { fill: "hsl(250 30% 12%)", stroke: "hsl(265 80% 55% / 0.4)", strokeWidth: 0.5, outline: "none" },
-                            hover: { fill: "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8, outline: "none" },
+                            default: { fill: active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)", stroke: "hsl(265 80% 55% / 0.5)", strokeWidth: 0.5 / view.zoom, outline: "none" },
+                            hover: { fill: "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
                             pressed: { fill: "hsl(265 70% 25%)", outline: "none" },
+                          }}
+                        />
+                      );})
+                    }
+                  </Geographies>
+                )}
+                {constGeo && view.zoom > 1.5 && (
+                  <Geographies geography={constGeo}>
+                    {({ geographies }) =>
+                      geographies.filter((g: any) => normalizeCounty(g.properties.COUNTY_NAM ?? "") === county).map((g: any) => (
+                        <Geography
+                          key={g.rsmKey}
+                          geography={g}
+                          onClick={() => setConstituency(titleCase(g.properties.CONSTITUEN ?? ""))}
+                          style={{
+                            default: { fill: titleCase(g.properties.CONSTITUEN ?? "") === constituency ? "hsl(205 100% 65% / 0.35)" : "hsl(205 100% 65% / 0.06)", stroke: "hsl(205 100% 70% / 0.8)", strokeWidth: 0.3 / view.zoom, outline: "none" },
+                            hover: { fill: "hsl(205 100% 65% / 0.25)", stroke: "hsl(205 100% 75%)", strokeWidth: 0.5 / view.zoom, outline: "none", cursor: "pointer" },
+                            pressed: { fill: "hsl(205 100% 65% / 0.4)", outline: "none" },
                           }}
                         />
                       ))
@@ -105,24 +151,30 @@ const PoliticalMap = () => {
                 {filtered.map((s) => (
                   <Marker key={s.id} coordinates={s.coords} onClick={() => setSelected(s)}>
                     <circle
-                      r={SEAT_RADIUS[s.level]}
+                      r={SEAT_RADIUS[s.level] / Math.sqrt(view.zoom)}
                       fill={SEAT_COLORS[s.level]}
                       fillOpacity={0.8}
                       stroke="white"
-                      strokeWidth={0.4}
+                      strokeWidth={0.4 / view.zoom}
                       style={{ cursor: "pointer" }}
                     />
-                    {s.level === "president" && (
+                    {s.level === "president" && view.zoom < 2 && (
                       <text textAnchor="middle" y={-18} style={{ fontSize: 9, fill: "hsl(230 30% 96%)", fontWeight: 700, paintOrder: "stroke", stroke: "hsl(240 25% 4%)", strokeWidth: 2 }}>
                         H.E. President
                       </text>
                     )}
                   </Marker>
                 ))}
+                </ZoomableGroup>
               </ComposableMap>
               <div className="absolute top-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1">
                 <div className="font-semibold flex items-center gap-2"><Filter className="h-3 w-3" /> Showing {filtered.length} seats</div>
-                <div className="text-muted-foreground">Click a marker for details</div>
+                <div className="text-muted-foreground">{view.zoom > 1.5 ? `${county}${constituency ? ` · ${constituency}` : ""} · tap a constituency` : "Tap a county to zoom in"}</div>
+              </div>
+              <div className="absolute top-3 right-3 flex flex-col gap-1">
+                <Button size="icon" variant="secondary" aria-label="Zoom in" onClick={() => setView((v) => ({ ...v, zoom: Math.min(v.zoom * 1.6, 24) }))}><Plus /></Button>
+                <Button size="icon" variant="secondary" aria-label="Zoom out" onClick={() => setView((v) => ({ ...v, zoom: Math.max(v.zoom / 1.6, 1) }))}><Minus /></Button>
+                <Button size="icon" variant="secondary" aria-label="Reset map" onClick={() => { setView(HOME); setConstituency(null); }}><RotateCcw /></Button>
               </div>
             </CardContent>
           </Card>

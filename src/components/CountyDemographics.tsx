@@ -59,9 +59,9 @@ export default function CountyDemographics({ county, onCountyChange }: Props) {
         {total < 99.95 && <p className="text-xs text-muted-foreground">Unreported share: {(100 - total).toFixed(1)}% · no group inferred</p>}
         <p className="text-xs text-muted-foreground">{rows[0].year} · <a href={rows[0].source} target="_blank" rel="noopener noreferrer" className="text-accent underline">View supplied source</a> · Imported data, not independently verified · Session only</p>
       </div> : <div className="py-6 border-y border-border/60 space-y-2">
-        <h3 className="font-medium">{county} · percentages not yet available</h3>
-        <p className="text-sm text-muted-foreground max-w-2xl">No verified county-by-ethnicity dataset is connected. Population shares are not estimated from county location or political affiliation.</p>
-        <a className="text-sm text-accent underline inline-block" href="https://www.knbs.or.ke/" target="_blank" rel="noopener noreferrer">Kenya National Bureau of Statistics</a>
+        <h3 className="font-medium">{county} · no official county percentages published</h3>
+        <p className="text-sm text-muted-foreground max-w-2xl">The 2019 Kenya Population and Housing Census (KNBS, Volume IV, released Feb 2020) publishes ethnic affiliation at national level only. KNBS has not released a county-by-ethnicity table, so ZERO shows no percentages rather than estimating them.</p>
+        <a className="text-sm text-accent underline inline-block" href="https://www.knbs.or.ke/2019-kenya-population-and-housing-census-reports/" target="_blank" rel="noopener noreferrer">KNBS 2019 Census reports</a>
       </div>}
       {isAdmin && <p className="text-xs text-muted-foreground break-words">CSV columns: county,group,percentage,year,source. One year and HTTPS source per county. Imports remain in this page session.</p>}
     </section>
