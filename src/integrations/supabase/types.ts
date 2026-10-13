@@ -176,6 +176,33 @@ export type Database = {
         }
         Relationships: []
       }
+      job_runs: {
+        Row: {
+          finished_at: string | null
+          id: string
+          job: string
+          message: string | null
+          started_at: string
+          status: string
+        }
+        Insert: {
+          finished_at?: string | null
+          id?: string
+          job: string
+          message?: string | null
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          finished_at?: string | null
+          id?: string
+          job?: string
+          message?: string | null
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
       module_settings: {
         Row: {
           ai_model: string | null
@@ -314,6 +341,54 @@ export type Database = {
           key?: string
           updated_at?: string
           value?: Json
+        }
+        Relationships: []
+      }
+      turnout_results: {
+        Row: {
+          county: string
+          election: string
+          fetched_at: string
+          id: string
+          published_on: string | null
+          registered_voters: number | null
+          scope: string
+          source_title: string
+          source_url: string
+          turnout_pct: number | null
+          verification_note: string | null
+          verified: boolean
+          votes_cast: number | null
+        }
+        Insert: {
+          county?: string
+          election: string
+          fetched_at?: string
+          id?: string
+          published_on?: string | null
+          registered_voters?: number | null
+          scope: string
+          source_title: string
+          source_url: string
+          turnout_pct?: number | null
+          verification_note?: string | null
+          verified?: boolean
+          votes_cast?: number | null
+        }
+        Update: {
+          county?: string
+          election?: string
+          fetched_at?: string
+          id?: string
+          published_on?: string | null
+          registered_voters?: number | null
+          scope?: string
+          source_title?: string
+          source_url?: string
+          turnout_pct?: number | null
+          verification_note?: string | null
+          verified?: boolean
+          votes_cast?: number | null
         }
         Relationships: []
       }
