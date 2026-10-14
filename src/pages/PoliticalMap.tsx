@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TrendingDown, TrendingUp, Map as MapIcon, Filter, Plus, Minus, RotateCcw } from "lucide-react";
+import { useCountyTurnout, turnoutColor } from "@/hooks/useCountyTurnout";
 
 const GEO_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/counties.geojson";
 const CONST_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/constituencies.geojson";
@@ -52,6 +53,8 @@ const PoliticalMap = () => {
   const [constGeo, setConstGeo] = useState<any>(null);
   const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
   const setCounty = (name: string) => { setCountyState(name); setConstituency(null); };
+  const [shadeTurnout, setShadeTurnout] = useState(true);
+  const { data: turnout } = useCountyTurnout();
 
   useEffect(() => {
     fetch(GEO_URL).then((r) => r.json()).then(setGeo).catch(() => setGeo(null));
@@ -111,6 +114,8 @@ const PoliticalMap = () => {
                       geographies.map((g: any) => {
                         const name = normalizeCounty(g.properties.COUNTY_NAM ?? "");
                         const active = name === county && view.zoom > 1.5;
+                        const t = shadeTurnout ? turnout?.get(name) : undefined;
+                        const base = shadeTurnout ? (t ? turnoutColor(t.turnout_pct) : "hsl(250 10% 18%)") : active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)";
                         return (
                         <Geography
                           key={g.rsmKey}
@@ -121,9 +126,9 @@ const PoliticalMap = () => {
                             setView({ center: centerOf(g), zoom: 5 });
                           }}
                           style={{
-                            default: { fill: active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)", stroke: "hsl(265 80% 55% / 0.5)", strokeWidth: 0.5 / view.zoom, outline: "none" },
-                            hover: { fill: "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
-                            pressed: { fill: "hsl(265 70% 25%)", outline: "none" },
+                            default: { fill: base, stroke: active ? "hsl(265 95% 75%)" : "hsl(265 80% 55% / 0.5)", strokeWidth: (active ? 1.2 : 0.5) / view.zoom, outline: "none" },
+                            hover: { fill: shadeTurnout ? base : "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
+                            pressed: { fill: shadeTurnout ? base : "hsl(265 70% 25%)", outline: "none" },
                           }}
                         />
                       );})
@@ -175,6 +180,19 @@ const PoliticalMap = () => {
                 <Button size="icon" variant="secondary" aria-label="Zoom in" onClick={() => setView((v) => ({ ...v, zoom: Math.min(v.zoom * 1.6, 24) }))}><Plus /></Button>
                 <Button size="icon" variant="secondary" aria-label="Zoom out" onClick={() => setView((v) => ({ ...v, zoom: Math.max(v.zoom / 1.6, 1) }))}><Minus /></Button>
                 <Button size="icon" variant="secondary" aria-label="Reset map" onClick={() => { setView(HOME); setConstituency(null); }}><RotateCcw /></Button>
+              </div>
+              <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1.5">
+                <button onClick={() => setShadeTurnout((s) => !s)} className="font-semibold underline-offset-2 hover:underline">
+                  {shadeTurnout ? "Turnout shading on" : "Show 2022 turnout"}
+                </button>
+                {shadeTurnout && (
+                  <>
+                    <div className="flex items-center gap-1.5 tabular-nums">
+                      40%<span className="h-1.5 w-24 rounded-full" style={{ background: `linear-gradient(90deg, ${turnoutColor(40)}, ${turnoutColor(62)}, ${turnoutColor(85)})` }} />85%
+                    </div>
+                    <div className="text-muted-foreground">IEBC Form 34C · 15 Aug 2022{turnout ? ` · ${turnout.size}/47 counties` : ""}</div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
