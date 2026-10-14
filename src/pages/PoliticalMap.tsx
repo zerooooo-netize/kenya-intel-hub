@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TrendingDown, TrendingUp, Map as MapIcon, Filter, Plus, Minus, RotateCcw } from "lucide-react";
+import { useCountyTurnout, turnoutColor } from "@/hooks/useCountyTurnout";
 
 const GEO_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/counties.geojson";
 const CONST_URL = "https://raw.githubusercontent.com/mikelmaron/kenya-election-data/master/data/constituencies.geojson";
@@ -52,6 +53,8 @@ const PoliticalMap = () => {
   const [constGeo, setConstGeo] = useState<any>(null);
   const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
   const setCounty = (name: string) => { setCountyState(name); setConstituency(null); };
+  const [shadeTurnout, setShadeTurnout] = useState(true);
+  const { data: turnout } = useCountyTurnout();
 
   useEffect(() => {
     fetch(GEO_URL).then((r) => r.json()).then(setGeo).catch(() => setGeo(null));
@@ -111,6 +114,8 @@ const PoliticalMap = () => {
                       geographies.map((g: any) => {
                         const name = normalizeCounty(g.properties.COUNTY_NAM ?? "");
                         const active = name === county && view.zoom > 1.5;
+                        const t = shadeTurnout ? turnout?.get(name) : undefined;
+                        const base = shadeTurnout ? (t ? turnoutColor(t.turnout_pct) : "hsl(250 10% 18%)") : active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)";
                         return (
                         <Geography
                           key={g.rsmKey}
@@ -121,9 +126,9 @@ const PoliticalMap = () => {
                             setView({ center: centerOf(g), zoom: 5 });
                           }}
                           style={{
-                            default: { fill: active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)", stroke: "hsl(265 80% 55% / 0.5)", strokeWidth: 0.5 / view.zoom, outline: "none" },
-                            hover: { fill: "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
-                            pressed: { fill: "hsl(265 70% 25%)", outline: "none" },
+                            default: { fill: base, stroke: active ? "hsl(265 95% 75%)" : "hsl(265 80% 55% / 0.5)", strokeWidth: (active ? 1.2 : 0.5) / view.zoom, outline: "none" },
+                            hover: { fill: shadeTurnout ? base : "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
+                            pressed: { fill: shadeTurnout ? base : "hsl(265 70% 25%)", outline: "none" },
                           }}
                         />
                       );})
