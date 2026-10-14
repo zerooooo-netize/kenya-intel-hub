@@ -1,4 +1,5 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const BOT_PROMPTS: Record<string, string> = {
   recon: "You are Recon Bot for ZERO Intelligence (Kenya), supporting a political campaign. Summarise public mentions, key entities, source breakdown and geographic hotspots.",
@@ -27,9 +28,29 @@ const MODE_INSTRUCTIONS: Record<string, string> = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-type Source = { title: string; url: string; snippet: string };
+type Source = { kind: string; title: string; url: string; snippet: string };
 
-async function crawl(query: string, lovableKey: string): Promise<{ sources: Source[]; note?: string }> {
+const LABELS: Record<string, string> = {
+  president: "President", deputy_president: "Deputy President", governor: "Governor", senator: "Senator",
+  woman_representative: "Woman Representative", mp: "Member of Parliament", mca: "MCA",
+};
+
+// Each position only looks at its own electoral area.
+function scopeFor(p: any) {
+  const pos = p?.aspired_position ?? "president";
+  const label = LABELS[pos] ?? "President";
+  if (pos === "president" || pos === "deputy_president")
+    return { label, area: "Kenya", instruction: `National ${label} race: cover all 47 counties, every level from President down to MCA where it affects the national campaign.` };
+  if (pos === "mp" && p?.constituency)
+    return { label, area: `${p.constituency} constituency ${p.county ?? ""}`.trim(), instruction: `Only the ${p.constituency} constituency MP race. Ignore other constituencies and other offices unless they directly affect this seat.` };
+  if (pos === "mca" && p?.ward)
+    return { label, area: `${p.ward} ward ${p.county ?? ""}`.trim(), instruction: `Only the ${p.ward} ward MCA race. Ignore other wards and offices unless they directly affect this seat.` };
+  if (p?.county)
+    return { label, area: `${p.county} county`, instruction: `Only the ${p.county} County ${label} race. Ignore other counties and other offices unless they directly affect this seat.` };
+  return { label, area: "Kenya", instruction: `${label} race; electoral area not set in the campaign profile.` };
+}
+
+async function crawl(query: string, lovableKey: string, kind: string, recent = true): Promise<{ sources: Source[]; note?: string }> {
   const fc = Deno.env.get("FIRECRAWL_API_KEY");
   if (!fc) return { sources: [], note: "Web crawler not configured." };
   try {
