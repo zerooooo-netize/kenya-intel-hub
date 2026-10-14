@@ -49,6 +49,8 @@ const BotDetail = () => {
   const [connections, setConnections] = useState<any[]>([]);
   const [topic, setTopic] = useState("");
   const [output, setOutput] = useState("");
+  const [sources, setSources] = useState<{ title: string; url: string }[]>([]);
+  const [note, setNote] = useState<string | undefined>();
   const [running, setRunning] = useState(false);
 
   useEffect(() => {
@@ -73,6 +75,8 @@ const BotDetail = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setOutput(data.text ?? "(no output)");
+      setSources(data.sources ?? []);
+      setNote(data.note);
       await supabase.from("system_logs").insert({
         level: "info", source: `bot:${botKey}`, message: `${mode} run for "${topic}"`,
       });
@@ -141,11 +145,20 @@ const BotDetail = () => {
               </div>
               <div className="rounded-xl bg-secondary/40 border border-border/60 p-4 min-h-[260px] text-sm whitespace-pre-wrap">
                 {running ? (
-                  <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Synthesising intelligence…</div>
+                  <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Crawling public sources and synthesising…</div>
                 ) : output ? output : (
-                  <span className="text-muted-foreground text-xs">Output will appear here. Powered by Lovable AI ({moduleCfg?.ai_model ?? "default"}).</span>
+                  <span className="text-muted-foreground text-xs">Output will appear here. Each run searches the public web, then AI analyses what it finds.</span>
                 )}
               </div>
+              {!running && output && (
+                <div className="space-y-1.5">
+                  <div className="text-xs font-semibold">Sources ({sources.length})</div>
+                  {sources.length === 0 && <div className="text-xs text-muted-foreground">{note ?? "No public sources found for this topic."}</div>}
+                  {sources.map((s, i) => (
+                    <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-primary hover:underline truncate">[{i + 1}] {s.title}</a>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
