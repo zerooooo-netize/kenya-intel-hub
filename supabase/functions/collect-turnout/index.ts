@@ -44,6 +44,12 @@ Deno.serve(async (req) => {
   }, { onConflict: "election,scope,county" });
 
   try {
+    // 2022 results are final: once all 47 reconciled counties are stored, nothing new can appear.
+    const { count } = await db.from("turnout_results").select("county", { count: "exact", head: true }).eq("election", ELECTION).eq("scope", "county").eq("verified", true);
+    if ((count ?? 0) >= 47) {
+      await finish("success", "All 47 verified counties already stored; official 2022 results are final.");
+      return json({ ok: true, counties: 47, upToDate: true });
+    }
     const res = await fetch(SOURCE_URL, { headers: { "User-Agent": "ZERO turnout collector" }, signal: AbortSignal.timeout(40000) });
     if (!res.ok) throw new Error(`IEBC returned ${res.status}`);
     const pdf = await getDocumentProxy(new Uint8Array(await res.arrayBuffer()));
