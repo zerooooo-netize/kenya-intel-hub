@@ -181,6 +181,19 @@ const PoliticalMap = () => {
                 <Button size="icon" variant="secondary" aria-label="Zoom out" onClick={() => setView((v) => ({ ...v, zoom: Math.max(v.zoom / 1.6, 1) }))}><Minus /></Button>
                 <Button size="icon" variant="secondary" aria-label="Reset map" onClick={() => { setView(HOME); setConstituency(null); }}><RotateCcw /></Button>
               </div>
+              <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1.5">
+                <button onClick={() => setShadeTurnout((s) => !s)} className="font-semibold underline-offset-2 hover:underline">
+                  {shadeTurnout ? "Turnout shading on" : "Show 2022 turnout"}
+                </button>
+                {shadeTurnout && (
+                  <>
+                    <div className="flex items-center gap-1.5 tabular-nums">
+                      40%<span className="h-1.5 w-24 rounded-full" style={{ background: `linear-gradient(90deg, ${turnoutColor(40)}, ${turnoutColor(62)}, ${turnoutColor(85)})` }} />85%
+                    </div>
+                    <div className="text-muted-foreground">IEBC Form 34C · 15 Aug 2022{turnout ? ` · ${turnout.size}/47 counties` : ""}</div>
+                  </>
+                )}
+              </div>
             </CardContent>
           </Card>
 
