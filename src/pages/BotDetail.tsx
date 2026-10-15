@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useCandidateProfile } from "@/hooks/useCandidateProfile";
 import { Radar, Shield, Eye, AlertTriangle, Lock, Brain, Loader2, Sparkles, ArrowLeft, FileText } from "lucide-react";
 
 const BOT_META: Record<string, { name: string; icon: any; color: string; tagline: string; capabilities: string[] }> = {
@@ -49,9 +50,20 @@ const BotDetail = () => {
   const [connections, setConnections] = useState<any[]>([]);
   const [topic, setTopic] = useState("");
   const [output, setOutput] = useState("");
-  const [sources, setSources] = useState<{ title: string; url: string }[]>([]);
+  const [sources, setSources] = useState<{ title: string; url: string; kind?: string }[]>([]);
   const [note, setNote] = useState<string | undefined>();
   const [running, setRunning] = useState(false);
+  const [scope, setScope] = useState<{ label: string; area: string; profiled: boolean } | null>(null);
+  const { profile } = useCandidateProfile();
+  const previewScope = (() => {
+    if (!profile) return "National scope · no campaign profile";
+    const p = profile.aspired_position;
+    const label = ({ president: "President", deputy_president: "Deputy President", governor: "Governor", senator: "Senator", woman_representative: "Woman Representative", mp: "MP", mca: "MCA" } as Record<string, string>)[p] ?? p;
+    if (p === "president" || p === "deputy_president") return `${label} · All of Kenya`;
+    if (p === "mp" && profile.constituency) return `${label} · ${profile.constituency} constituency`;
+    if (p === "mca" && profile.ward) return `${label} · ${profile.ward} ward`;
+    return `${label} · ${profile.county ?? "Area not set"}${profile.county ? " county" : ""}`;
+  })();
 
   useEffect(() => {
     if (!botKey) return;
@@ -77,6 +89,7 @@ const BotDetail = () => {
       setOutput(data.text ?? "(no output)");
       setSources(data.sources ?? []);
       setNote(data.note);
+      setScope(data.scope ?? null);
       await supabase.from("system_logs").insert({
         level: "info", source: `bot:${botKey}`, message: `${mode} run for "${topic}"`,
       });
@@ -123,7 +136,9 @@ const BotDetail = () => {
         <div className="grid lg:grid-cols-3 gap-4">
           <Card className="lg:col-span-2 glass border-border/60">
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /> AI Analysis Engine</CardTitle>
+              <CardTitle className="text-base flex items-center gap-2 flex-wrap"><Sparkles className="h-4 w-4 text-primary" /> AI Analysis Engine
+                <Badge variant="outline" className="ml-auto text-[10px] font-normal">Covering: {scope ? `${scope.label} · ${scope.area}` : previewScope}</Badge>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
@@ -155,7 +170,10 @@ const BotDetail = () => {
                   <div className="text-xs font-semibold">Sources ({sources.length})</div>
                   {sources.length === 0 && <div className="text-xs text-muted-foreground">{note ?? "No public sources found for this topic."}</div>}
                   {sources.map((s, i) => (
-                    <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="block text-xs text-primary hover:underline truncate">[{i + 1}] {s.title}</a>
+                    <a key={s.url} href={s.url} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-xs text-primary hover:underline min-w-0">
+                      {s.kind && <Badge variant="secondary" className="text-[9px] uppercase shrink-0">{s.kind}</Badge>}
+                      <span className="truncate">[{i + 1}] {s.title}</span>
+                    </a>
                   ))}
                 </div>
               )}
