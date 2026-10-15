@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useCandidateProfile } from "@/hooks/useCandidateProfile";
+import MarkdownView from "@/components/MarkdownView";
 import { Radar, Shield, Eye, AlertTriangle, Lock, Brain, Loader2, Sparkles, ArrowLeft, FileText } from "lucide-react";
 
 const BOT_META: Record<string, { name: string; icon: any; color: string; tagline: string; capabilities: string[] }> = {
@@ -158,10 +159,10 @@ const BotDetail = () => {
                   <FileText className="h-3.5 w-3.5 mr-1" /> AI Briefing
                 </Button>
               </div>
-              <div className="rounded-xl bg-secondary/40 border border-border/60 p-4 min-h-[260px] text-sm whitespace-pre-wrap">
+              <div className="rounded-xl bg-secondary/40 border border-border/60 p-4 min-h-[260px] text-sm">
                 {running ? (
                   <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Crawling public sources and synthesising…</div>
-                ) : output ? output : (
+                ) : output ? <MarkdownView text={output} /> : (
                   <span className="text-muted-foreground text-xs">Output will appear here. Each run searches the public web, then AI analyses what it finds.</span>
                 )}
               </div>
