@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { BarChart3, Loader2, Plus, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
+import MarkdownView from "@/components/MarkdownView";
 
 const COUNTIES = ["Mombasa","Kwale","Kilifi","Tana River","Lamu","Taita Taveta","Garissa","Wajir","Mandera","Marsabit","Isiolo","Meru","Tharaka Nithi","Embu","Kitui","Machakos","Makueni","Nyandarua","Nyeri","Kirinyaga","Murang'a","Kiambu","Turkana","West Pokot","Samburu","Trans Nzoia","Uasin Gishu","Elgeyo Marakwet","Nandi","Baringo","Laikipia","Nakuru","Narok","Kajiado","Kericho","Bomet","Kakamega","Vihiga","Bungoma","Busia","Siaya","Kisumu","Homa Bay","Migori","Kisii","Nyamira","Nairobi"];
 const ELECTIONS = ["2022-presidential", "2017-presidential", "2013-presidential"];
@@ -158,7 +159,7 @@ export default function Turnout() {
                     <span className="font-semibold">Data unavailable — no verified source:</span> {result.unavailable.join(", ")}
                   </div>
                 )}
-                <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed rounded-xl bg-muted/30 p-4">{result.report}</pre>
+                <div className="rounded-xl bg-muted/30 p-4"><MarkdownView text={result.report} /></div>
                 {result.evidence.length > 0 && (
                   <div>
                     <div className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Evidence</div>
