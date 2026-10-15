@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
 
     const data = await resp.json();
     const text = data?.choices?.[0]?.message?.content ?? "";
-    return json({ text, sources: sources.map(({ title, url }) => ({ title, url })), note });
+    return json({ text, sources: sources.map(({ title, url, kind }) => ({ title, url, kind })), note, scope: { label: scope.label, area: scope.area, profiled: !!profile } });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
   }
