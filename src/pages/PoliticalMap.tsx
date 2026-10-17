@@ -3,6 +3,8 @@ import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "re
 import AppShell from "@/components/AppShell";
 import CountyDemographics from "@/components/CountyDemographics";
 import CountyTurnout from "@/components/CountyTurnout";
+import ElectoralStructure from "@/components/ElectoralStructure";
+import NationalEthnicity from "@/components/NationalEthnicity";
 import { normalizeCounty } from "@/data/countyDemographics";
 import PageHeader from "@/components/PageHeader";
 import { generateSeats, PoliticalSeat, SEAT_COLORS, SEAT_RADIUS, SeatLevel } from "@/data/politicalSeats";
@@ -198,6 +200,13 @@ const PoliticalMap = () => {
           </Card>
 
           <div className="space-y-4">
+            <ElectoralStructure
+              county={county || null}
+              constituency={constituency}
+              constGeo={constGeo}
+              onCounty={(c) => { setCounty(c ?? ""); if (!c) setView(HOME); }}
+              onConstituency={setConstituency}
+            />
             <Card className="glass border-border/60">
               <CardHeader className="pb-2"><CardTitle className="text-sm">Search seats</CardTitle></CardHeader>
               <CardContent>
@@ -272,6 +281,7 @@ const PoliticalMap = () => {
             </Card>
           </div>
         </div>
+        <NationalEthnicity />
         <CountyDemographics county={county} onCountyChange={setCounty} />
       </div>
     </AppShell>
