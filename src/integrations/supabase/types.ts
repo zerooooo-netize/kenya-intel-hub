@@ -278,6 +278,57 @@ export type Database = {
         }
         Relationships: []
       }
+      officeholders: {
+        Row: {
+          added_by: string | null
+          constituency: string | null
+          county: string | null
+          created_at: string
+          full_name: string
+          id: string
+          level: string
+          party: string | null
+          photo_url: string | null
+          source_title: string
+          source_url: string
+          updated_at: string
+          verified_on: string | null
+          ward: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          constituency?: string | null
+          county?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          level: string
+          party?: string | null
+          photo_url?: string | null
+          source_title: string
+          source_url: string
+          updated_at?: string
+          verified_on?: string | null
+          ward?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          constituency?: string | null
+          county?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          level?: string
+          party?: string | null
+          photo_url?: string | null
+          source_title?: string
+          source_url?: string
+          updated_at?: string
+          verified_on?: string | null
+          ward?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -15,6 +15,13 @@
       "when": 1791853943729,
       "tag": "0001_analyst_results_and_cron",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792399525080,
+      "tag": "0002_officeholders",
+      "breakpoints": true
     }
   ]
 }

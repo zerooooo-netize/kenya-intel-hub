@@ -15,6 +15,7 @@ import { Loader2, Save, Shield, Database, Cog, FileWarning, Users, Brain, Settin
 import AIBehavior from "./admin/AIBehavior";
 import SystemSettings from "./admin/SystemSettings";
 import UsageAnalytics from "./admin/UsageAnalytics";
+import Officeholders from "./admin/Officeholders";
 
 type Conn = {
   id: string;
@@ -26,6 +27,7 @@ type Conn = {
   enabled: boolean;
   rate_limit_per_min: number | null;
   status: string;
+  extra_config?: any;
 };
 type Module = {
   id: string;
@@ -53,6 +55,7 @@ const Admin = () => {
             <TabsTrigger value="connections"><Database className="h-4 w-4 mr-2" />API Connections</TabsTrigger>
             <TabsTrigger value="modules"><Cog className="h-4 w-4 mr-2" />Modules</TabsTrigger>
             <TabsTrigger value="ai"><Brain className="h-4 w-4 mr-2" />AI Behavior</TabsTrigger>
+            <TabsTrigger value="officeholders"><Users className="h-4 w-4 mr-2" />Officeholders</TabsTrigger>
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-2" />Users & Roles</TabsTrigger>
             <TabsTrigger value="settings"><SettingsIcon className="h-4 w-4 mr-2" />System Settings</TabsTrigger>
             <TabsTrigger value="usage"><BarChart3 className="h-4 w-4 mr-2" />Usage Analytics</TabsTrigger>
@@ -62,6 +65,7 @@ const Admin = () => {
           <TabsContent value="connections"><ApiConnections /></TabsContent>
           <TabsContent value="modules"><ModulesPanel /></TabsContent>
           <TabsContent value="ai"><AIBehavior /></TabsContent>
+          <TabsContent value="officeholders"><Officeholders /></TabsContent>
           <TabsContent value="users"><UsersPanel /></TabsContent>
           <TabsContent value="settings"><SystemSettings /></TabsContent>
           <TabsContent value="usage"><UsageAnalytics /></TabsContent>
@@ -109,6 +113,7 @@ const ApiConnections = () => {
         api_secret: c.api_secret,
         enabled: c.enabled,
         rate_limit_per_min: c.rate_limit_per_min,
+        extra_config: c.extra_config ?? {},
         status,
         updated_at: new Date().toISOString(),
       })
@@ -178,6 +183,19 @@ const ApiConnections = () => {
                     />
                   </div>
                 </div>
+                {c.category === "ai" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <Label className="text-xs">Model</Label>
+                      <Input value={c.extra_config?.model ?? ""} onChange={(e) => update(c.id, { extra_config: { ...(c.extra_config ?? {}), model: e.target.value } })} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs">API base URL (OpenAI-compatible)</Label>
+                      <Input value={c.extra_config?.base_url ?? ""} onChange={(e) => update(c.id, { extra_config: { ...(c.extra_config ?? {}), base_url: e.target.value } })} />
+                    </div>
+                    <p className="text-[11px] text-muted-foreground md:col-span-2">When enabled with a key, all bots use this provider instead of the built-in AI. Leave every AI provider off to use built-in AI.</p>
+                  </div>
+                )}
                 <div className="flex justify-end">
                   <Button size="sm" onClick={() => save(c)} className="bg-gradient-primary">
                     <Save className="h-3.5 w-3.5 mr-1" /> Save

@@ -121,11 +121,18 @@ Deno.serve(async (req) => {
       ? `Client campaign: ${profile.full_name}, aspiring ${scope.label}${profile.party ? `, ${profile.party}` : ""}. Electoral area: ${scope.area}. Priority topics: ${(profile.campaign_topics ?? []).join(", ") || "none set"}.`
       : "No campaign profile set; treat scope as national.";
 
-    const resp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // Admin-added AI provider (API Connections → AI Providers) takes priority when enabled with a key.
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const { data: byo } = await admin.from("api_connections").select("display_name, api_key, extra_config")
+      .eq("category", "ai").eq("enabled", true).not("api_key", "is", null).order("updated_at", { ascending: false }).limit(1).maybeSingle();
+    const cfg = (byo?.extra_config ?? {}) as { base_url?: string; model?: string };
+    const useByo = !!(byo?.api_key && cfg.base_url && cfg.model);
+    const endpoint = useByo ? `${cfg.base_url!.replace(/\/$/, "")}/chat/completions` : "https://ai.gateway.lovable.dev/v1/chat/completions";
+    const resp = await fetch(endpoint, {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${useByo ? byo!.api_key : LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: useModel,
+        model: useByo ? cfg.model : useModel,
         messages: [
           { role: "system", content: `${system}\n\n${campaign}\nScope: ${scope.instruction}\n\nRules: Cite live evidence like [1]. You may add background from your own general knowledge, but put it in a separate section titled "Background (AI knowledge — verify before use)" and never cite it as a source. Never invent statistics, percentages, polls, or quotes. If no evidence exists for a section, say "No public evidence found". Label strategy as recommendations.` },
           { role: "user", content: `Topic / Entity: ${topic}\n\nTask: ${instr}\n\nEvidence (crawled from the public web in the last month):\n${evidence}` },
@@ -135,11 +142,11 @@ Deno.serve(async (req) => {
 
     if (resp.status === 429) return json({ error: "Rate limit reached, try again shortly." }, 429);
     if (resp.status === 402) return json({ error: "AI credits exhausted. Top up workspace usage." }, 402);
-    if (!resp.ok) return json({ error: `AI error ${resp.status}: ${await resp.text()}` }, resp.status === 403 ? 403 : 500);
+    if (!resp.ok) return json({ error: `${useByo ? byo!.display_name : "AI"} error ${resp.status}: ${await resp.text()}` }, resp.status === 403 ? 403 : 500);
 
     const data = await resp.json();
     const text = data?.choices?.[0]?.message?.content ?? "";
-    return json({ text, sources: sources.map(({ title, url, kind }) => ({ title, url, kind })), note, scope: { label: scope.label, area: scope.area, profiled: !!profile } });
+    return json({ text, sources: sources.map(({ title, url, kind }) => ({ title, url, kind })), note, provider: useByo ? byo!.display_name : "Lovable AI", scope: { label: scope.label, area: scope.area, profiled: !!profile } });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
   }
