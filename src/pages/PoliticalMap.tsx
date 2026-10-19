@@ -5,6 +5,7 @@ import CountyDemographics from "@/components/CountyDemographics";
 import CountyTurnout from "@/components/CountyTurnout";
 import ElectoralStructure from "@/components/ElectoralStructure";
 import NationalEthnicity from "@/components/NationalEthnicity";
+import { WARDS_PER_COUNTY, WARD_SOURCE, wardColor } from "@/data/wardCounts";
 import { normalizeCounty } from "@/data/countyDemographics";
 import PageHeader from "@/components/PageHeader";
 import { generateSeats, PoliticalSeat, SEAT_COLORS, SEAT_RADIUS, SeatLevel } from "@/data/politicalSeats";
@@ -55,11 +56,20 @@ const PoliticalMap = () => {
   const [constGeo, setConstGeo] = useState<any>(null);
   const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
   const setCounty = (name: string) => { setCountyState(name); setConstituency(null); };
-  const [shadeTurnout, setShadeTurnout] = useState(true);
+  const [shade, setShade] = useState<"turnout" | "wards" | "none">("turnout");
+  const shadeTurnout = shade === "turnout";
+  const [showPins, setShowPins] = useState(false);
+  const [wardGeo, setWardGeo] = useState<any>(null);
+  const wardsByCounty = useMemo(() => {
+    const m = new Map<string, number>();
+    Object.entries(WARDS_PER_COUNTY).forEach(([k, v]) => m.set(normalizeCounty(k), v));
+    return m;
+  }, []);
   const { data: turnout } = useCountyTurnout();
 
   useEffect(() => {
     fetch(GEO_URL).then((r) => r.json()).then(setGeo).catch(() => setGeo(null));
+    fetch("/geo/wards.geojson").then((r) => r.json()).then(setWardGeo).catch(() => setWardGeo(null));
     fetch(CONST_URL).then((r) => r.json()).then(setConstGeo).catch(() => setConstGeo(null));
   }, []);
 
@@ -117,7 +127,8 @@ const PoliticalMap = () => {
                         const name = normalizeCounty(g.properties.COUNTY_NAM ?? "");
                         const active = name === county && view.zoom > 1.5;
                         const t = shadeTurnout ? turnout?.get(name) : undefined;
-                        const base = shadeTurnout ? (t ? turnoutColor(t.turnout_pct) : "hsl(250 10% 18%)") : active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)";
+                        const w = wardsByCounty.get(name);
+                        const base = shade === "wards" ? (w ? wardColor(w) : "hsl(250 10% 18%)") : shadeTurnout ? (t ? turnoutColor(t.turnout_pct) : "hsl(250 10% 18%)") : active ? "hsl(265 70% 22%)" : "hsl(250 30% 12%)";
                         return (
                         <Geography
                           key={g.rsmKey}
@@ -129,8 +140,8 @@ const PoliticalMap = () => {
                           }}
                           style={{
                             default: { fill: base, stroke: active ? "hsl(265 95% 75%)" : "hsl(265 80% 55% / 0.5)", strokeWidth: (active ? 1.2 : 0.5) / view.zoom, outline: "none" },
-                            hover: { fill: shadeTurnout ? base : "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
-                            pressed: { fill: shadeTurnout ? base : "hsl(265 70% 25%)", outline: "none" },
+                            hover: { fill: shade !== "none" ? base : "hsl(265 70% 22%)", stroke: "hsl(265 95% 70%)", strokeWidth: 0.8 / view.zoom, outline: "none", cursor: "pointer" },
+                            pressed: { fill: shade !== "none" ? base : "hsl(265 70% 25%)", outline: "none" },
                           }}
                         />
                       );})
@@ -155,7 +166,26 @@ const PoliticalMap = () => {
                     }
                   </Geographies>
                 )}
-                {filtered.map((s) => (
+                {wardGeo && view.zoom > 1.5 && (
+                  <Geographies geography={wardGeo}>
+                    {({ geographies }) =>
+                      geographies
+                        .filter((g: any) => normalizeCounty(g.properties.c ?? "") === county && (!constituency || titleCase(g.properties.k ?? "") === constituency))
+                        .map((g: any) => (
+                          <Geography
+                            key={g.rsmKey}
+                            geography={g}
+                            style={{
+                              default: { fill: "transparent", stroke: "hsl(45 95% 65% / 0.7)", strokeWidth: 0.2 / view.zoom, outline: "none", pointerEvents: "none" },
+                              hover: { fill: "transparent", outline: "none", pointerEvents: "none" },
+                              pressed: { fill: "transparent", outline: "none" },
+                            }}
+                          />
+                        ))
+                    }
+                  </Geographies>
+                )}
+                {showPins && filtered.map((s) => (
                   <Marker key={s.id} coordinates={s.coords} onClick={() => setSelected(s)}>
                     <circle
                       r={SEAT_RADIUS[s.level] / Math.sqrt(view.zoom)}
@@ -175,7 +205,8 @@ const PoliticalMap = () => {
                 </ZoomableGroup>
               </ComposableMap>
               <div className="absolute top-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1">
-                <div className="font-semibold flex items-center gap-2"><Filter className="h-3 w-3" /> Showing {filtered.length} seats</div>
+                <button onClick={() => setShowPins((v) => !v)} className="font-semibold flex items-center gap-2 hover:underline"><Filter className="h-3 w-3" /> {showPins ? `Simulated pins on (${filtered.length})` : "Show simulated seat pins"}</button>
+                {showPins && <div className="text-warning">Pins are illustrative, not real officeholders</div>}
                 <div className="text-muted-foreground">{view.zoom > 1.5 ? `${county}${constituency ? ` · ${constituency}` : ""} · tap a constituency` : "Tap a county to zoom in"}</div>
               </div>
               <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -184,9 +215,20 @@ const PoliticalMap = () => {
                 <Button size="icon" variant="secondary" aria-label="Reset map" onClick={() => { setView(HOME); setConstituency(null); }}><RotateCcw /></Button>
               </div>
               <div className="absolute bottom-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1.5">
-                <button onClick={() => setShadeTurnout((s) => !s)} className="font-semibold underline-offset-2 hover:underline">
-                  {shadeTurnout ? "Turnout shading on" : "Show 2022 turnout"}
-                </button>
+                <div className="flex gap-1">
+                  {(["turnout", "wards", "none"] as const).map((m) => (
+                    <button key={m} onClick={() => setShade(m)} className={`rounded px-1.5 py-0.5 capitalize ${shade === m ? "bg-primary text-primary-foreground" : "hover:bg-secondary"}`}>{m === "none" ? "Off" : m}</button>
+                  ))}
+                </div>
+                {shade === "wards" && (
+                  <>
+                    <div className="flex items-center gap-1.5 tabular-nums">
+                      10<span className="h-1.5 w-24 rounded-full" style={{ background: `linear-gradient(90deg, ${wardColor(10)}, ${wardColor(47)}, ${wardColor(85)})` }} />85 wards
+                    </div>
+                    <a href={WARD_SOURCE.url} target="_blank" rel="noreferrer" className="block text-muted-foreground underline">{WARD_SOURCE.title}</a>
+                    <a href={WARD_SOURCE.outlinesUrl} target="_blank" rel="noreferrer" className="block text-muted-foreground underline">{WARD_SOURCE.outlines}</a>
+                  </>
+                )}
                 {shadeTurnout && (
                   <>
                     <div className="flex items-center gap-1.5 tabular-nums">

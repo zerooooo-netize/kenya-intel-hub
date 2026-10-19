@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import { NATIONAL_STRUCTURE as N, STRUCTURE_SOURCE, seatsAt } from "@/data/electoralStructure";
 import { normalizeCounty } from "@/data/countyDemographics";
+import { WARDS_PER_COUNTY } from "@/data/wardCounts";
 
 const tc = (s: string) => s.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 
@@ -69,7 +70,9 @@ const ElectoralStructure = ({ county, constituency, constGeo, onCounty, onConsti
               ))}
               {!constGeo && <div className="text-muted-foreground">Loading boundaries…</div>}
             </div>
-            <div className="text-muted-foreground mt-2">Ward-by-county counts: data unavailable here — 1,450 wards nationally.</div>
+            <div className="text-muted-foreground mt-2">
+              {(() => { const n = Object.entries(WARDS_PER_COUNTY).find(([k]) => normalizeCounty(k) === normalizeCounty(county!))?.[1]; return n ? `${n} wards → ${n} elected MCAs (IEBC)` : "Ward count: data unavailable"; })()}
+            </div>
           </div>
         )}
 
@@ -80,7 +83,7 @@ const ElectoralStructure = ({ county, constituency, constGeo, onCounty, onConsti
         <a href={STRUCTURE_SOURCE.url} target="_blank" rel="noreferrer" className="block text-[11px] text-muted-foreground underline">
           Source: {STRUCTURE_SOURCE.title}
         </a>
-        <Badge variant="outline" className="text-[10px]">Map seat pins are a simulation; counts above are official</Badge>
+        <Badge variant="outline" className="text-[10px]">Seat pins are simulated and hidden by default; counts above are official</Badge>
       </CardContent>
     </Card>
   );
