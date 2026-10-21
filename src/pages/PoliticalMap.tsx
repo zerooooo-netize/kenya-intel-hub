@@ -8,7 +8,7 @@ import NationalEthnicity from "@/components/NationalEthnicity";
 import { WARDS_PER_COUNTY, WARD_SOURCE, wardColor } from "@/data/wardCounts";
 import { normalizeCounty } from "@/data/countyDemographics";
 import PageHeader from "@/components/PageHeader";
-import { generateSeats, PoliticalSeat, SEAT_COLORS, SEAT_RADIUS, SeatLevel } from "@/data/politicalSeats";
+import { useOfficeholders, OFFICE_COLOR, OFFICE_LABEL, OfficeLevel, Officeholder } from "@/hooks/useOfficeholders";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,22 +35,15 @@ function centerOf(feature: any): [number, number] {
   return [(minX + maxX) / 2, (minY + maxY) / 2];
 }
 
-const LEVEL_LABEL: Record<SeatLevel, string> = {
-  president: "President",
-  governor: "Governors",
-  senator: "Senators",
-  mp: "MPs",
-  mca: "MCAs",
-};
 
 const PoliticalMap = () => {
   const [geo, setGeo] = useState<any>(null);
-  const [seats] = useState<PoliticalSeat[]>(generateSeats);
-  const [activeLevels, setActiveLevels] = useState<Record<SeatLevel, boolean>>({
-    president: true, governor: true, senator: true, mp: true, mca: false,
+  const { data: holders = [] } = useOfficeholders();
+  const [activeLevels, setActiveLevels] = useState<Record<OfficeLevel, boolean>>({
+    president: true, deputy_president: true, governor: true, senator: true, woman_rep: true, mp: true, mca: true,
   });
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<PoliticalSeat | null>(null);
+  const [selected, setSelected] = useState<Officeholder | null>(null);
   const [county, setCountyState] = useState("Nairobi");
   const [constituency, setConstituency] = useState<string | null>(null);
   const [constGeo, setConstGeo] = useState<any>(null);
@@ -58,7 +51,7 @@ const PoliticalMap = () => {
   const setCounty = (name: string) => { setCountyState(name); setConstituency(null); };
   const [shade, setShade] = useState<"turnout" | "wards" | "none">("turnout");
   const shadeTurnout = shade === "turnout";
-  const [showPins, setShowPins] = useState(false);
+  const [showPins, setShowPins] = useState(true);
   const [wardGeo, setWardGeo] = useState<any>(null);
   const wardsByCounty = useMemo(() => {
     const m = new Map<string, number>();
@@ -73,15 +66,37 @@ const PoliticalMap = () => {
     fetch(CONST_URL).then((r) => r.json()).then(setConstGeo).catch(() => setConstGeo(null));
   }, []);
 
+  // Pin position: centre of the officeholder's ward → constituency → county → Kenya.
+  const centres = useMemo(() => {
+    const m = new Map<string, [number, number]>();
+    geo?.features?.forEach((f: any) => m.set(`c:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}`, centerOf(f)));
+    constGeo?.features?.forEach((f: any) => m.set(`k:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}:${(f.properties.CONSTITUEN ?? "").toLowerCase().trim()}`, centerOf(f)));
+    wardGeo?.features?.forEach((f: any) => m.set(`w:${normalizeCounty(f.properties.c ?? "")}:${(f.properties.w ?? "").toLowerCase().trim()}`, centerOf(f)));
+    return m;
+  }, [geo, constGeo, wardGeo]);
+
+  const located = useMemo(() => holders.map((h) => {
+    const c = normalizeCounty(h.county ?? "");
+    const offset: Record<string, [number, number]> = { governor: [0, 0], senator: [0.12, 0], woman_rep: [-0.12, 0], deputy_president: [0.25, 0] };
+    const base = (h.ward && centres.get(`w:${c}:${h.ward.toLowerCase().trim()}`))
+      || (h.constituency && centres.get(`k:${c}:${h.constituency.toLowerCase().trim()}`))
+      || (h.county && centres.get(`c:${c}`))
+      || (!h.county ? HOME.center : null);
+    if (!base) return null;
+    const o = offset[h.level] ?? [0, 0];
+    return { ...h, coords: [base[0] + o[0], base[1] + o[1]] as [number, number] };
+  }).filter(Boolean) as (Officeholder & { coords: [number, number] })[], [holders, centres]);
+
   const filtered = useMemo(() => {
-    return seats.filter((s) => activeLevels[s.level] && (search === "" || s.title.toLowerCase().includes(search.toLowerCase()) || s.region.toLowerCase().includes(search.toLowerCase())));
-  }, [seats, activeLevels, search]);
+    const q = search.toLowerCase();
+    return located.filter((s) => activeLevels[s.level] && (!q || [s.full_name, s.county, s.constituency, s.ward, s.party].some((v) => v?.toLowerCase().includes(q))));
+  }, [located, activeLevels, search]);
 
   const counts = useMemo(() => {
-    const c: Record<SeatLevel, number> = { president: 0, governor: 0, senator: 0, mp: 0, mca: 0 };
-    seats.forEach((s) => c[s.level]++);
+    const c = { president: 0, deputy_president: 0, governor: 0, senator: 0, woman_rep: 0, mp: 0, mca: 0 } as Record<OfficeLevel, number>;
+    holders.forEach((s) => c[s.level]++);
     return c;
-  }, [seats]);
+  }, [holders]);
 
   return (
     <AppShell>
@@ -91,10 +106,10 @@ const PoliticalMap = () => {
           title="Every seat,"
           highlight="every signal."
           icon={MapIcon}
-          description="Real-time sentiment & influence simulation across every elected position in Kenya — from Member of County Assembly to President."
+          description="Verified officeholders, official seat counts, turnout and ward boundaries — from Member of County Assembly to President."
           actions={
             <div className="flex gap-2 flex-wrap">
-              {(Object.keys(activeLevels) as SeatLevel[]).map((lvl) => (
+              {(Object.keys(activeLevels) as OfficeLevel[]).map((lvl) => (
                 <button
                   key={lvl}
                   onClick={() => setActiveLevels((a) => ({ ...a, [lvl]: !a[lvl] }))}
@@ -102,8 +117,8 @@ const PoliticalMap = () => {
                     activeLevels[lvl] ? "border-primary/60 bg-primary/15 text-foreground" : "border-border/60 text-muted-foreground hover:border-primary/30"
                   }`}
                 >
-                  <span className="inline-block h-2 w-2 rounded-full mr-2 align-middle" style={{ background: SEAT_COLORS[lvl] }} />
-                  {LEVEL_LABEL[lvl]} ({counts[lvl]})
+                  <span className="inline-block h-2 w-2 rounded-full mr-2 align-middle" style={{ background: OFFICE_COLOR[lvl] }} />
+                  {OFFICE_LABEL[lvl]} ({counts[lvl]})
                 </button>
               ))}
             </div>
@@ -187,26 +202,14 @@ const PoliticalMap = () => {
                 )}
                 {showPins && filtered.map((s) => (
                   <Marker key={s.id} coordinates={s.coords} onClick={() => setSelected(s)}>
-                    <circle
-                      r={SEAT_RADIUS[s.level] / Math.sqrt(view.zoom)}
-                      fill={SEAT_COLORS[s.level]}
-                      fillOpacity={0.8}
-                      stroke="white"
-                      strokeWidth={0.4 / view.zoom}
-                      style={{ cursor: "pointer" }}
-                    />
-                    {s.level === "president" && view.zoom < 2 && (
-                      <text textAnchor="middle" y={-18} style={{ fontSize: 9, fill: "hsl(230 30% 96%)", fontWeight: 700, paintOrder: "stroke", stroke: "hsl(240 25% 4%)", strokeWidth: 2 }}>
-                        H.E. President
-                      </text>
-                    )}
+                    <circle r={(s.level === "president" ? 7 : s.level === "mca" ? 2.5 : 4) / Math.sqrt(view.zoom)} fill={OFFICE_COLOR[s.level]} fillOpacity={0.9} stroke="hsl(0 0% 100%)" strokeWidth={0.4 / view.zoom} style={{ cursor: "pointer" }} />
                   </Marker>
                 ))}
                 </ZoomableGroup>
               </ComposableMap>
               <div className="absolute top-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1">
-                <button onClick={() => setShowPins((v) => !v)} className="font-semibold flex items-center gap-2 hover:underline"><Filter className="h-3 w-3" /> {showPins ? `Simulated pins on (${filtered.length})` : "Show simulated seat pins"}</button>
-                {showPins && <div className="text-warning">Pins are illustrative, not real officeholders</div>}
+                <button onClick={() => setShowPins((v) => !v)} className="font-semibold flex items-center gap-2 hover:underline"><Filter className="h-3 w-3" /> {showPins ? `${filtered.length} verified officeholders` : "Show officeholders"}</button>
+                {holders.length === 0 && <div className="text-muted-foreground">None added yet — Admin → Officeholders</div>}
                 <div className="text-muted-foreground">{view.zoom > 1.5 ? `${county}${constituency ? ` · ${constituency}` : ""} · tap a constituency` : "Tap a county to zoom in"}</div>
               </div>
               <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -250,75 +253,51 @@ const PoliticalMap = () => {
               onConstituency={setConstituency}
             />
             <Card className="glass border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Search seats</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Search officeholders</CardTitle></CardHeader>
               <CardContent>
-                <Input placeholder="county, name, role…" value={search} onChange={(e) => setSearch(e.target.value)} />
+                <Input placeholder="name, county, ward, party…" value={search} onChange={(e) => setSearch(e.target.value)} />
               </CardContent>
             </Card>
 
             {selected ? (
               <Card className="glass-strong border-primary/40">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: SEAT_COLORS[selected.level] }} />
-                    <Badge variant="outline" className="capitalize">{selected.level}</Badge>
-                    <Badge variant="secondary">{selected.party}</Badge>
-                  </div>
-                  <CardTitle className="text-base mt-2">{selected.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  <Row label="Region" value={selected.region} />
-                  <Row label="Mentions" value={selected.mentions} />
-                  <Row label="Influence" value={`${selected.influence}/100`} />
-                  <div>
-                    <div className="text-xs text-muted-foreground mb-1">Sentiment</div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                        <div
-                          className="h-full"
-                          style={{
-                            width: `${Math.abs(selected.sentiment)}%`,
-                            background: selected.sentiment >= 0 ? "hsl(150 85% 55%)" : "hsl(0 85% 62%)",
-                            marginLeft: selected.sentiment < 0 ? `${50 - Math.abs(selected.sentiment) / 2}%` : "50%",
-                          }}
-                        />
+                <CardContent className="p-4 space-y-3 text-sm">
+                  <div className="flex items-center gap-3">
+                    {selected.photo_url
+                      ? <img src={selected.photo_url} alt={selected.full_name} className="h-14 w-14 rounded-full object-cover border border-border" />
+                      : <div className="h-14 w-14 rounded-full bg-secondary grid place-items-center text-xs text-muted-foreground">No photo</div>}
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{selected.full_name}</div>
+                      <div className="flex gap-1 mt-1">
+                        <Badge variant="outline" style={{ borderColor: OFFICE_COLOR[selected.level] }}>{OFFICE_LABEL[selected.level]}</Badge>
+                        {selected.party && <Badge variant="secondary">{selected.party}</Badge>}
                       </div>
-                      <span className={selected.sentiment >= 0 ? "text-success font-mono text-xs" : "text-destructive font-mono text-xs"}>
-                        {selected.sentiment > 0 ? "+" : ""}{selected.sentiment}
-                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    {selected.trend === "up" ? <TrendingUp className="h-3.5 w-3.5 text-success" /> : <TrendingDown className="h-3.5 w-3.5 text-destructive" />}
-                    Trending {selected.trend}
-                  </div>
-                  <Button size="sm" className="w-full bg-gradient-primary">Generate AI briefing</Button>
+                  <Row label="Area" value={[selected.ward, selected.constituency, selected.county].filter(Boolean).join(", ") || "National"} />
+                  {selected.verified_on && <Row label="Verified" value={selected.verified_on} />}
+                  <a href={selected.source_url} target="_blank" rel="noreferrer" className="block text-xs text-muted-foreground underline">Source: {selected.source_title}</a>
                 </CardContent>
               </Card>
             ) : (
               <Card className="glass border-border/60">
                 <CardContent className="p-6 text-xs text-muted-foreground text-center">
-                  Click a seat on the map to see real-time intelligence.
+                  Click an officeholder pin to see their profile and source.
                 </CardContent>
               </Card>
             )}
 
             <Card className="glass border-border/60">
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Top influencers</CardTitle></CardHeader>
-              <CardContent className="space-y-2">
-                {[...filtered].sort((a, b) => b.influence - a.influence).slice(0, 6).map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => setSelected(s)}
-                    className="w-full flex items-center justify-between text-xs p-2 rounded-lg hover:bg-secondary/50 transition-smooth"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: SEAT_COLORS[s.level] }} />
-                      <span className="truncate">{s.title}</span>
-                    </div>
-                    <span className="font-mono text-muted-foreground shrink-0">{s.influence}</span>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Officeholders{county ? ` · ${county}` : ""}</CardTitle></CardHeader>
+              <CardContent className="space-y-1">
+                {filtered.filter((s) => !county || !s.county || normalizeCounty(s.county) === normalizeCounty(county)).slice(0, 12).map((s) => (
+                  <button key={s.id} onClick={() => setSelected(s)} className="w-full flex items-center gap-2 text-xs p-2 rounded-lg hover:bg-secondary/50 transition-smooth text-left">
+                    <span className="h-2 w-2 rounded-full shrink-0" style={{ background: OFFICE_COLOR[s.level] }} />
+                    <span className="truncate flex-1">{s.full_name}</span>
+                    <span className="text-muted-foreground shrink-0">{OFFICE_LABEL[s.level]}</span>
                   </button>
                 ))}
+                {filtered.length === 0 && <div className="text-xs text-muted-foreground">No verified officeholders here yet.</div>}
               </CardContent>
             </Card>
           </div>

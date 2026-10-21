@@ -83,7 +83,7 @@ const ElectoralStructure = ({ county, constituency, constGeo, onCounty, onConsti
         <a href={STRUCTURE_SOURCE.url} target="_blank" rel="noreferrer" className="block text-[11px] text-muted-foreground underline">
           Source: {STRUCTURE_SOURCE.title}
         </a>
-        <Badge variant="outline" className="text-[10px]">Seat pins are simulated and hidden by default; counts above are official</Badge>
+        <Badge variant="outline" className="text-[10px]">Pins show only verified officeholders; counts above are official</Badge>
       </CardContent>
     </Card>
   );
