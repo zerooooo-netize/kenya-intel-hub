@@ -18,6 +18,7 @@ import DataExplorer from "./pages/DataExplorer";
 import Billing from "./pages/Billing";
 import Onboarding from "./pages/Onboarding";
 import { Team } from "./pages/Placeholder";
+import CountyDashboard from "./pages/CountyDashboard";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/alerts" element={<ProtectedRoute><Alerts /></ProtectedRoute>} />
             <Route path="/data-explorer" element={<ProtectedRoute role="analyst"><DataExplorer /></ProtectedRoute>} />
+            <Route path="/county" element={<ProtectedRoute><CountyDashboard /></ProtectedRoute>} />
             <Route path="/turnout" element={<ProtectedRoute><Turnout /></ProtectedRoute>} />
             <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
             <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
