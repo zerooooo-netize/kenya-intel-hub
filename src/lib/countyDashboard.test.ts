@@ -15,4 +15,7 @@ describe("county browsing", () => {
   it("preserves known Nairobi assembly to map aliases", () => {
     expect(wardLocationKey("Nairobi", "Mugumu-Ini")).toBe(wardLocationKey("Nairobi", "Mugumo-Ini"));
   });
+  it("does not pin identically named Nakuru wards in the wrong constituency", () => {
+    expect(wardLocationKey("Nakuru", "Biashara", "Nakuru Town East")).not.toBe(wardLocationKey("Nakuru", "Biashara", "Naivasha"));
+  });
 });

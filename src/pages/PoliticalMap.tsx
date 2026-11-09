@@ -47,7 +47,7 @@ const PoliticalMap = () => {
   });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Officeholder | null>(null);
-  const [county, setCountyState] = useState(normalizeCounty(params.get("county") ?? "") ?? "Nairobi");
+  const [county, setCountyState] = useState<string>(normalizeCounty(params.get("county") ?? "") ?? "Nairobi");
   const [constituency, setConstituency] = useState<string | null>(null);
   const [constGeo, setConstGeo] = useState<any>(null);
   const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
@@ -84,7 +84,10 @@ const PoliticalMap = () => {
     const m = new Map<string, [number, number]>();
     geo?.features?.forEach((f: any) => m.set(`c:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}`, centerOf(f)));
     constGeo?.features?.forEach((f: any) => m.set(`k:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}:${(f.properties.CONSTITUEN ?? "").toLowerCase().trim()}`, centerOf(f)));
-    wardGeo?.features?.forEach((f: any) => m.set(wardLocationKey(f.properties.c ?? "", f.properties.w ?? ""), centerOf(f)));
+    wardGeo?.features?.forEach((f: any) => {
+      m.set(wardLocationKey(f.properties.c ?? "", f.properties.w ?? "", f.properties.k), centerOf(f));
+      m.set(wardLocationKey(f.properties.c ?? "", f.properties.w ?? ""), centerOf(f));
+    });
     return m;
   }, [geo, constGeo, wardGeo]);
 
@@ -93,10 +96,10 @@ const PoliticalMap = () => {
     const offset: Record<string, [number, number]> = { governor: [0, 0], senator: [0.12, 0], woman_rep: [-0.12, 0], deputy_president: [0.25, 0] };
     // MCAs without a matching ward boundary stay unpinned, never at a county centre.
     if (h.level === "mca") {
-      const ward = h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward));
+      const ward = h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward, h.constituency));
       return ward ? { ...h, coords: ward } : null;
     }
-    const base = (h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward)))
+    const base = (h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward, h.constituency)))
       || (h.constituency && centres.get(`k:${c}:${h.constituency.toLowerCase().trim()}`))
       || (h.county && centres.get(`c:${c}`))
       || (!h.county ? HOME.center : null);
