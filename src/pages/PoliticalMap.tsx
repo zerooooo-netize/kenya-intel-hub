@@ -222,7 +222,7 @@ const PoliticalMap = () => {
                   </Geographies>
                 )}
                 {showPins && filtered.map((s) => (
-                  <Marker key={s.id} coordinates={s.coords} onClick={() => setSelected(s)}>
+                  <Marker key={s.id} coordinates={s.coords} role="button" aria-label={`${OFFICE_LABEL[s.level]} ${s.full_name}`} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(s); } }} onClick={() => setSelected(s)}>
                     <circle r={(s.level === "president" ? 7 : s.level === "mca" ? 2.5 : 4) / Math.sqrt(view.zoom)} fill={OFFICE_COLOR[s.level]} fillOpacity={0.9} stroke="hsl(0 0% 100%)" strokeWidth={0.4 / view.zoom} style={{ cursor: "pointer" }} />
                   </Marker>
                 ))}
@@ -231,6 +231,7 @@ const PoliticalMap = () => {
               <div className="absolute top-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1">
                 <button onClick={() => setShowPins((v) => !v)} className="font-semibold flex items-center gap-2 hover:underline"><Filter className="h-3 w-3" /> {showPins ? `${filtered.length} verified officeholders` : "Show officeholders"}</button>
                 {holders.length === 0 && <div className="text-muted-foreground">None added yet — Admin → Officeholders</div>}
+                {county && holders.some((h) => h.level === "mca" && normalizeCounty(h.county ?? "") === normalizeCounty(county) && !located.some((s) => s.id === h.id)) && <div className="text-muted-foreground">Some MCAs are listed only: ward boundary unavailable.</div>}
                 <div className="text-muted-foreground">{view.zoom > 1.5 ? `${county}${constituency ? ` · ${constituency}` : ""} · tap a constituency` : "Tap a county to zoom in"}</div>
               </div>
               <div className="absolute top-3 right-3 flex flex-col gap-1">

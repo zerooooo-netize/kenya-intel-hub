@@ -18,4 +18,8 @@ describe("county browsing", () => {
   it("does not pin identically named Nakuru wards in the wrong constituency", () => {
     expect(wardLocationKey("Nakuru", "Biashara", "Nakuru Town East")).not.toBe(wardLocationKey("Nakuru", "Biashara", "Naivasha"));
   });
+  it("matches official Nakuru spelling variants to their boundary names", () => {
+    expect(wardLocationKey("Nakuru", "Kivumbuni", "Nakuru Town East")).toBe(wardLocationKey("Nakuru", "Kivumbini", "Nakuru Town East"));
+    expect(wardLocationKey("Nakuru", "Eburu/Mbaruk", "Gilgil")).toBe(wardLocationKey("Nakuru", "Mbaruk/Eburu", "Gilgil"));
+  });
 });

@@ -42,7 +42,7 @@ const CountyDashboard = () => {
     .sort((a, b) => (a.constituency ?? "").localeCompare(b.constituency ?? "") || (a.ward ?? "").localeCompare(b.ward ?? ""));
   const t = turnout?.get(key);
   const allMcas = inCounty.filter((p) => p.level === "mca");
-  const electedWards = new Set(allMcas.filter((p) => p.ward).map((p) => p.ward?.toLowerCase().trim())).size;
+  const electedWards = new Set(allMcas.filter((p) => p.ward).map((p) => `${p.constituency ?? ""}:${p.ward?.toLowerCase().trim()}`)).size;
   const expectedWards = Object.entries(WARDS_PER_COUNTY).find(([c]) => normalizeCounty(c) === key)?.[1];
 
   const { data: news = [], isLoading: newsLoading, error: newsError } = useQuery({

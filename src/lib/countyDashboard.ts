@@ -9,13 +9,15 @@ export function wardLocationKey(county: string, ward: string, constituency?: str
     mugumuini: "mugumoini",
     woodleykenyattagolfcourse: "woodleykenyattagolf",
     matopenispringvalley: "matopeni",
-    maunarok: "maunarok",
-    maunarokward: "maunarok",
-    maunaroklocation: "maunarok",
   };
   const name = ward.toLowerCase().replace(/[^a-z0-9]/g, "").replace(/ward$/, "");
   const canonical = normalizeCounty(county) ?? county;
-  const mapped = canonical === "Nairobi" ? aliases[name] ?? name : canonical === "Nakuru" && name === "maunarok" ? "maunarok" : name;
+  // Spelling differences between the official assembly roster and the public ward map.
+  const nakuruAliases: Record<string, string> = {
+    kivumbuni: "kivumbini", kaptembwa: "kaptembwo", murindat: "murindati",
+    rhonda: "rhoda", eburumbaruk: "mbarukeburu",
+  };
+  const mapped = canonical === "Nairobi" ? aliases[name] ?? name : canonical === "Nakuru" ? nakuruAliases[name] ?? name : name;
   const area = constituency?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
   return `w:${canonical}:${area}:${mapped}`;
 }
