@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { wardLocationKey } from "@/lib/countyDashboard";
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import AppShell from "@/components/AppShell";
 import CountyDemographics from "@/components/CountyDemographics";
@@ -37,6 +39,7 @@ function centerOf(feature: any): [number, number] {
 
 
 const PoliticalMap = () => {
+  const [params] = useSearchParams();
   const [geo, setGeo] = useState<any>(null);
   const { data: holders = [] } = useOfficeholders();
   const [activeLevels, setActiveLevels] = useState<Record<OfficeLevel, boolean>>({
@@ -44,7 +47,7 @@ const PoliticalMap = () => {
   });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Officeholder | null>(null);
-  const [county, setCountyState] = useState("Nairobi");
+  const [county, setCountyState] = useState(normalizeCounty(params.get("county") ?? "") ?? "Nairobi");
   const [constituency, setConstituency] = useState<string | null>(null);
   const [constGeo, setConstGeo] = useState<any>(null);
   const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
@@ -58,6 +61,16 @@ const PoliticalMap = () => {
     Object.entries(WARDS_PER_COUNTY).forEach(([k, v]) => m.set(normalizeCounty(k), v));
     return m;
   }, []);
+
+  useEffect(() => {
+    const requested = normalizeCounty(params.get("county") ?? "");
+    const feature = geo?.features?.find((f: any) => normalizeCounty(f.properties.COUNTY_NAM ?? "") === requested);
+    if (requested && feature) {
+      setCountyState(requested);
+      setConstituency(null);
+      setView({ center: centerOf(feature), zoom: 5 });
+    }
+  }, [geo, params]);
   const { data: turnout } = useCountyTurnout();
 
   useEffect(() => {
@@ -71,14 +84,19 @@ const PoliticalMap = () => {
     const m = new Map<string, [number, number]>();
     geo?.features?.forEach((f: any) => m.set(`c:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}`, centerOf(f)));
     constGeo?.features?.forEach((f: any) => m.set(`k:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}:${(f.properties.CONSTITUEN ?? "").toLowerCase().trim()}`, centerOf(f)));
-    wardGeo?.features?.forEach((f: any) => m.set(`w:${normalizeCounty(f.properties.c ?? "")}:${(f.properties.w ?? "").toLowerCase().trim()}`, centerOf(f)));
+    wardGeo?.features?.forEach((f: any) => m.set(wardLocationKey(f.properties.c ?? "", f.properties.w ?? ""), centerOf(f)));
     return m;
   }, [geo, constGeo, wardGeo]);
 
   const located = useMemo(() => holders.map((h) => {
     const c = normalizeCounty(h.county ?? "");
     const offset: Record<string, [number, number]> = { governor: [0, 0], senator: [0.12, 0], woman_rep: [-0.12, 0], deputy_president: [0.25, 0] };
-    const base = (h.ward && centres.get(`w:${c}:${h.ward.toLowerCase().trim()}`))
+    // MCAs without a matching ward boundary stay unpinned, never at a county centre.
+    if (h.level === "mca") {
+      const ward = h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward));
+      return ward ? { ...h, coords: ward } : null;
+    }
+    const base = (h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward)))
       || (h.constituency && centres.get(`k:${c}:${h.constituency.toLowerCase().trim()}`))
       || (h.county && centres.get(`c:${c}`))
       || (!h.county ? HOME.center : null);
@@ -245,6 +263,7 @@ const PoliticalMap = () => {
           </Card>
 
           <div className="space-y-4">
+            {county && <Button asChild variant="outline" className="w-full"><Link to={`/county?county=${encodeURIComponent(county)}`}>{county} dashboard</Link></Button>}
             <ElectoralStructure
               county={county || null}
               constituency={constituency}
