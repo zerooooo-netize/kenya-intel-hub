@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import { wardLocationKey } from "@/lib/countyDashboard";
 import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from "react-simple-maps";
 import AppShell from "@/components/AppShell";
 import CountyDemographics from "@/components/CountyDemographics";
@@ -37,6 +39,7 @@ function centerOf(feature: any): [number, number] {
 
 
 const PoliticalMap = () => {
+  const [params] = useSearchParams();
   const [geo, setGeo] = useState<any>(null);
   const { data: holders = [] } = useOfficeholders();
   const [activeLevels, setActiveLevels] = useState<Record<OfficeLevel, boolean>>({
@@ -44,7 +47,7 @@ const PoliticalMap = () => {
   });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Officeholder | null>(null);
-  const [county, setCountyState] = useState("Nairobi");
+  const [county, setCountyState] = useState<string>(normalizeCounty(params.get("county") ?? "") ?? "Nairobi");
   const [constituency, setConstituency] = useState<string | null>(null);
   const [constGeo, setConstGeo] = useState<any>(null);
   const [view, setView] = useState<{ center: [number, number]; zoom: number }>(HOME);
@@ -58,6 +61,16 @@ const PoliticalMap = () => {
     Object.entries(WARDS_PER_COUNTY).forEach(([k, v]) => m.set(normalizeCounty(k), v));
     return m;
   }, []);
+
+  useEffect(() => {
+    const requested = normalizeCounty(params.get("county") ?? "");
+    const feature = geo?.features?.find((f: any) => normalizeCounty(f.properties.COUNTY_NAM ?? "") === requested);
+    if (requested && feature) {
+      setCountyState(requested);
+      setConstituency(null);
+      setView({ center: centerOf(feature), zoom: 5 });
+    }
+  }, [geo, params]);
   const { data: turnout } = useCountyTurnout();
 
   useEffect(() => {
@@ -71,14 +84,22 @@ const PoliticalMap = () => {
     const m = new Map<string, [number, number]>();
     geo?.features?.forEach((f: any) => m.set(`c:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}`, centerOf(f)));
     constGeo?.features?.forEach((f: any) => m.set(`k:${normalizeCounty(f.properties.COUNTY_NAM ?? "")}:${(f.properties.CONSTITUEN ?? "").toLowerCase().trim()}`, centerOf(f)));
-    wardGeo?.features?.forEach((f: any) => m.set(`w:${normalizeCounty(f.properties.c ?? "")}:${(f.properties.w ?? "").toLowerCase().trim()}`, centerOf(f)));
+    wardGeo?.features?.forEach((f: any) => {
+      m.set(wardLocationKey(f.properties.c ?? "", f.properties.w ?? "", f.properties.k), centerOf(f));
+      m.set(wardLocationKey(f.properties.c ?? "", f.properties.w ?? ""), centerOf(f));
+    });
     return m;
   }, [geo, constGeo, wardGeo]);
 
   const located = useMemo(() => holders.map((h) => {
     const c = normalizeCounty(h.county ?? "");
     const offset: Record<string, [number, number]> = { governor: [0, 0], senator: [0.12, 0], woman_rep: [-0.12, 0], deputy_president: [0.25, 0] };
-    const base = (h.ward && centres.get(`w:${c}:${h.ward.toLowerCase().trim()}`))
+    // MCAs without a matching ward boundary stay unpinned, never at a county centre.
+    if (h.level === "mca") {
+      const ward = h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward, h.constituency));
+      return ward ? { ...h, coords: ward } : null;
+    }
+    const base = (h.ward && centres.get(wardLocationKey(h.county ?? "", h.ward, h.constituency)))
       || (h.constituency && centres.get(`k:${c}:${h.constituency.toLowerCase().trim()}`))
       || (h.county && centres.get(`c:${c}`))
       || (!h.county ? HOME.center : null);
@@ -201,7 +222,7 @@ const PoliticalMap = () => {
                   </Geographies>
                 )}
                 {showPins && filtered.map((s) => (
-                  <Marker key={s.id} coordinates={s.coords} onClick={() => setSelected(s)}>
+                  <Marker key={s.id} coordinates={s.coords} role="button" aria-label={`${OFFICE_LABEL[s.level]} ${s.full_name}`} tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(s); } }} onClick={() => setSelected(s)}>
                     <circle r={(s.level === "president" ? 7 : s.level === "mca" ? 2.5 : 4) / Math.sqrt(view.zoom)} fill={OFFICE_COLOR[s.level]} fillOpacity={0.9} stroke="hsl(0 0% 100%)" strokeWidth={0.4 / view.zoom} style={{ cursor: "pointer" }} />
                   </Marker>
                 ))}
@@ -210,6 +231,7 @@ const PoliticalMap = () => {
               <div className="absolute top-3 left-3 glass-strong rounded-lg px-3 py-2 text-[10px] space-y-1">
                 <button onClick={() => setShowPins((v) => !v)} className="font-semibold flex items-center gap-2 hover:underline"><Filter className="h-3 w-3" /> {showPins ? `${filtered.length} verified officeholders` : "Show officeholders"}</button>
                 {holders.length === 0 && <div className="text-muted-foreground">None added yet — Admin → Officeholders</div>}
+                {county && holders.some((h) => h.level === "mca" && normalizeCounty(h.county ?? "") === normalizeCounty(county) && !located.some((s) => s.id === h.id)) && <div className="text-muted-foreground">Some MCAs are listed only: ward boundary unavailable.</div>}
                 <div className="text-muted-foreground">{view.zoom > 1.5 ? `${county}${constituency ? ` · ${constituency}` : ""} · tap a constituency` : "Tap a county to zoom in"}</div>
               </div>
               <div className="absolute top-3 right-3 flex flex-col gap-1">
@@ -245,6 +267,7 @@ const PoliticalMap = () => {
           </Card>
 
           <div className="space-y-4">
+            {county && <Button asChild variant="outline" className="w-full"><Link to={`/county?county=${encodeURIComponent(county)}`}>{county} dashboard</Link></Button>}
             <ElectoralStructure
               county={county || null}
               constituency={constituency}
