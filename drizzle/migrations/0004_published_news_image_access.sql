@@ -1,0 +1,1 @@
+CREATE POLICY "Read images attached to published county news" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'county-news-images' AND EXISTS (SELECT 1 FROM public.county_news_posts p WHERE p.status = 'published' AND p.cover_url LIKE '%/county-news-images/' || storage.objects.name));

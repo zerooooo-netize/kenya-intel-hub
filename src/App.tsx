@@ -19,6 +19,10 @@ import Billing from "./pages/Billing";
 import Onboarding from "./pages/Onboarding";
 import { Team } from "./pages/Placeholder";
 import CountyDashboard from "./pages/CountyDashboard";
+import CountyNews from "./pages/CountyNews";
+import CountyNewsArticle from "./pages/CountyNewsArticle";
+import CountyNewsEditor from "./pages/CountyNewsEditor";
+import CountyNewsManage from "./pages/CountyNewsManage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +35,11 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/news" element={<CountyNews />} />
+            <Route path="/news/manage" element={<ProtectedRoute role="admin"><CountyNewsManage /></ProtectedRoute>} />
+            <Route path="/news/new" element={<ProtectedRoute role="admin"><CountyNewsEditor /></ProtectedRoute>} />
+            <Route path="/news/edit/:id" element={<ProtectedRoute role="admin"><CountyNewsEditor /></ProtectedRoute>} />
+            <Route path="/news/:id" element={<CountyNewsArticle />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/political-map" element={<ProtectedRoute><PoliticalMap /></ProtectedRoute>} />

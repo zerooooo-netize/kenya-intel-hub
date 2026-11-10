@@ -221,6 +221,57 @@ export type Database = {
         }
         Relationships: []
       }
+      county_news_posts: {
+        Row: {
+          author_id: string
+          author_name: string
+          body: string
+          category: string
+          county: string
+          cover_url: string | null
+          created_at: string
+          id: string
+          published_at: string | null
+          source_url: string | null
+          status: string
+          summary: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          author_name: string
+          body: string
+          category?: string
+          county: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          source_url?: string | null
+          status?: string
+          summary?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          author_name?: string
+          body?: string
+          category?: string
+          county?: string
+          cover_url?: string | null
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          source_url?: string | null
+          status?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       job_runs: {
         Row: {
           finished_at: string | null

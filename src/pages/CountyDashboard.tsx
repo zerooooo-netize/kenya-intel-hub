@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCandidateProfile } from "@/hooks/useCandidateProfile";
 import { useOfficeholders, OFFICE_LABEL } from "@/hooks/useOfficeholders";
 import { useCountyTurnout } from "@/hooks/useCountyTurnout";
+import { useCountyNews } from "@/hooks/useCountyNews";
 import { normalizeCounty } from "@/data/countyDemographics";
 import { KENYA_COUNTIES } from "@/data/kenyaCounties";
 import { WARDS_PER_COUNTY, WARD_SOURCE } from "@/data/wardCounts";
@@ -44,6 +45,7 @@ const CountyDashboard = () => {
   const allMcas = inCounty.filter((p) => p.level === "mca");
   const electedWards = new Set(allMcas.filter((p) => p.ward).map((p) => `${p.constituency ?? ""}:${p.ward?.toLowerCase().trim()}`)).size;
   const expectedWards = Object.entries(WARDS_PER_COUNTY).find(([c]) => normalizeCounty(c) === key)?.[1];
+  const { data: publishedUpdates } = useCountyNews(county);
 
   const { data: news = [], isLoading: newsLoading, error: newsError } = useQuery({
     queryKey: ["county-news", county],
@@ -70,6 +72,7 @@ const CountyDashboard = () => {
               <SelectContent>{KENYA_COUNTIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
             <Button asChild variant="outline"><Link to={`/political-map?county=${encodeURIComponent(county)}`}><MapPin className="h-4 w-4" />County map</Link></Button>
+            <Button asChild variant="outline"><Link to={`/news?county=${encodeURIComponent(county)}`}><Newspaper className="h-4 w-4" />County news</Link></Button>
           </>} />
 
         <div className="grid gap-6 lg:grid-cols-3">
@@ -152,8 +155,9 @@ const CountyDashboard = () => {
           </Card>
 
           <Card className="glass lg:col-span-2">
-            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Newspaper className="h-4 w-4" />Latest news</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Newspaper className="h-4 w-4" />Latest news</CardTitle><Link to={`/news?county=${encodeURIComponent(county)}`} className="text-xs text-primary underline">All {county} updates</Link></CardHeader>
             <CardContent className="space-y-3">
+              {publishedUpdates?.posts.slice(0, 4).map((post) => <div key={post.id} className="border-b border-border pb-3"><Badge variant="outline" className="mb-2">{post.category}</Badge><Link to={`/news/${post.id}`} className="block text-sm font-medium hover:text-primary break-words">{post.title}</Link><p className="mt-1 text-xs text-muted-foreground">{post.author_name} · {new Date(post.published_at ?? post.created_at).toLocaleDateString("en-KE")}</p></div>)}
               {newsLoading ? <p className="text-sm text-muted-foreground">Loading news…</p> : newsError ? <p className="text-sm text-destructive">Could not load news. Please try again.</p> : news.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No sourced news collected for {county} yet.</p>
               ) : news.map((n: any) => (
