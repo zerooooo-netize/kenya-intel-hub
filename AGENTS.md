@@ -1,4 +1,6 @@
 # Architecture rules
+- County news uses public published-article routes and admin-only publishing enforced by database RLS; drafts are never publicly readable.
+- County news photos use private storage with signed URLs; public read permission applies only to images attached to published posts.
 - County dashboards use a validated county URL parameter independent of campaign profiles; browsing must not change bot scope.
 - MCA pins require a matched ward boundary, using shared normalized ward keys; unmatched members remain listed rather than placed at county centres.
 - Share navigation sections between the desktop sidebar and mobile drawer so page links stay consistent.
