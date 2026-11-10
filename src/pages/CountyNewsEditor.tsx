@@ -43,7 +43,7 @@ export default function CountyNewsEditor() {
     if (!parsed.success) { toast.error(parsed.error.issues[0]?.message ?? "Check your article."); return; }
     setBusy(true);
     try {
-      const row = { ...parsed.data, status, cover_url: parsed.data.cover_url || null, source_url: parsed.data.source_url || null };
+      const row = { county: form.county, title: form.title.trim(), summary: form.summary.trim(), body: form.body.trim(), author_name: form.author_name.trim(), category: form.category, status, cover_url: form.cover_url || null, source_url: form.source_url || null };
       const result = id ? await supabase.from("county_news_posts").update(row).eq("id", id).select("id").single() : await supabase.from("county_news_posts").insert({ ...row, author_id: user.id }).select("id").single();
       if (result.error) throw result.error;
       await cache.invalidateQueries({ queryKey: ["published-news"] });
