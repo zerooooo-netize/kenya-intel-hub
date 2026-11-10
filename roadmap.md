@@ -1,4 +1,7 @@
 # Tasks
+- [ ] Build public news pages for all 47 counties with individual article pages.
+- [ ] Add admin draft, photo upload, preview, publish, edit and delete controls.
+- [ ] Link published updates from county dashboards and verify publishing end to end.
 - [x] Import sourced Nakuru MCAs: 55 listed, 54 ward pins; Nakuru Town East Biashara boundary unavailable.
 - [x] Make all 47 county dashboards selectable and link them to the selected county map.
 - [x] Verify county switching and a Nakuru MCA profile in a signed-in session.
